@@ -66,6 +66,11 @@ body {
 }
 
 /* Hero — all animations CSS-only, no JS dependency */
+@keyframes fade-out-up {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-10px); }
+}
+
 @keyframes slide-from-left {
   from { transform: translateX(-110vw); }
   to   { transform: translateX(0); }
@@ -89,14 +94,11 @@ body {
 .hand-dios {
   animation: slide-from-right 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s both;
 }
-.hero-logo {
-  animation: logo-reveal 1.4s cubic-bezier(0.25, 0.1, 0.25, 1) 2.4s both;
+.hero-reveal {
+  animation: fade-up 0.6s ease both;
 }
-.hero-manifesto {
-  animation: fade-up 0.7s ease 3.8s both;
-}
-.hero-cta {
-  animation: fade-up 0.7s ease 4.0s both;
+.hero-brand {
+  animation: fade-out-up 0.5s ease 2.0s both;
 }
 
 /* Hero ticker — CSS only, no JS */
@@ -108,4 +110,137 @@ body {
 .hero-ticker {
   display: inline-block;
   animation: hero-ticker-scroll 28s linear infinite;
+}
+
+/* ── Historia / Timeline ── */
+
+/* 2016 — archivo degradado: scanlines + desaturado */
+.year-archive {
+  position: relative;
+  filter: saturate(0) contrast(1.15);
+  -webkit-font-smoothing: none;
+}
+.year-archive::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,0,0,0.28) 3px, rgba(0,0,0,0.28) 4px
+  );
+}
+
+/* 2020 — señal rota: RGB split continuo */
+@keyframes glitch-r {
+  0%,100% { clip-path: inset(14% 0 68% 0); transform: translateX(-5px); }
+  20%      { clip-path: inset(44% 0 36% 0); transform: translateX(-7px); }
+  40%      { clip-path: inset(74% 0 4%  0); transform: translateX(-3px); }
+  60%      { clip-path: inset(4%  0 84% 0); transform: translateX(-6px); }
+  80%      { clip-path: inset(28% 0 54% 0); transform: translateX(-2px); }
+}
+@keyframes glitch-c {
+  0%,100% { clip-path: inset(60% 0 14% 0); transform: translateX(5px); }
+  25%      { clip-path: inset(20% 0 54% 0); transform: translateX(7px); }
+  50%      { clip-path: inset(46% 0 30% 0); transform: translateX(2px); }
+  75%      { clip-path: inset(6%  0 76% 0); transform: translateX(6px); }
+}
+@keyframes glitch-body {
+  0%,88%,100% { transform: translateX(0); clip-path: inset(0 0 0 0); }
+  89%  { transform: translateX(-6px); clip-path: inset(28% 0 52% 0); }
+  90%  { transform: translateX(6px);  clip-path: inset(56% 0 22% 0); }
+  91%  { transform: translateX(0);    clip-path: inset(0 0 0 0); }
+  96%  { transform: translateX(0);    clip-path: inset(0 0 0 0); }
+  97%  { transform: translateX(-3px); clip-path: inset(72% 0 8% 0); }
+  98%  { transform: translateX(0);    clip-path: inset(0 0 0 0); }
+}
+.year-broken {
+  position: relative;
+  animation: glitch-body 5s ease-in-out infinite;
+  -webkit-font-smoothing: none;
+}
+.year-broken::before,
+.year-broken::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  font-family: inherit;
+  pointer-events: none;
+}
+.year-broken::before {
+  color: rgba(255, 20, 80, 0.8);
+  animation: glitch-r 3s ease-in-out infinite;
+}
+.year-broken::after {
+  color: rgba(0, 220, 255, 0.8);
+  animation: glitch-c 3.8s ease-in-out infinite;
+}
+
+/* Grain overlay animation */
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  10%       { transform: translate(-2%, -3%); }
+  20%       { transform: translate(3%, 1%); }
+  30%       { transform: translate(-1%, 4%); }
+  40%       { transform: translate(4%, -2%); }
+  50%       { transform: translate(-3%, 3%); }
+  60%       { transform: translate(2%, -4%); }
+  70%       { transform: translate(-4%, 1%); }
+  80%       { transform: translate(3%, 3%); }
+  90%       { transform: translate(-2%, -1%); }
+}
+
+.timeline-grain::after {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 0.4s steps(1) infinite;
+}
+
+/* Glitch reveal for year numbers */
+@keyframes year-glitch {
+  0%   { opacity: 0; }
+  4%   { opacity: 1; clip-path: inset(45% 0 45% 0); transform: translateX(10px); }
+  8%   { clip-path: inset(8%  0 60% 0); transform: translateX(-7px); }
+  12%  { clip-path: inset(68% 0 6%  0); transform: translateX(5px); }
+  16%  { clip-path: inset(22% 0 38% 0); transform: translateX(-3px); }
+  22%  { clip-path: inset(0 0 0 0);     transform: translateX(0); opacity: 1; }
+  70%  { clip-path: inset(0 0 0 0);     transform: translateX(0); }
+  71%  { clip-path: inset(50% 0 44% 0); transform: translateX(-5px); }
+  72%  { clip-path: inset(0 0 0 0);     transform: translateX(0); }
+  88%  { clip-path: inset(0 0 0 0);     transform: translateX(0); }
+  89%  { clip-path: inset(12% 0 80% 0); transform: translateX(4px); }
+  90%  { clip-path: inset(0 0 0 0);     transform: translateX(0); }
+  100% { clip-path: inset(0 0 0 0);     transform: translateX(0); opacity: 1; }
+}
+
+.year-glitch {
+  animation: year-glitch 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation-play-state: paused;
+}
+.year-glitch.running  { animation-play-state: running; }
+.year-glitch-d1       { animation-delay: 0.13s; }
+.year-glitch-d2       { animation-delay: 0.26s; }
+
+/* Chromatic aberration on 2026 */
+@keyframes chroma-drift {
+  0%, 100% { text-shadow: -1.5px 0 rgba(255, 30, 80, 0.55),  1.5px 0 rgba(0, 210, 255, 0.55); }
+  33%       { text-shadow: -2.5px 0 rgba(255, 30, 80, 0.35),  2.5px 0 rgba(0, 210, 255, 0.35); }
+  66%       { text-shadow: -3px   0 rgba(255, 30, 80, 0.65),  3px   0 rgba(0, 210, 255, 0.65); }
+}
+
+.year-chroma {
+  animation: chroma-drift 4s ease-in-out infinite;
 }

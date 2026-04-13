@@ -8,13 +8,14 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-ghost/10 bg-carbon/95 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <Link
           href="/"
-          className="font-mono text-sm tracking-widest text-ghost hover:text-sand transition-colors duration-200"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity duration-200"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_blanco.svg" alt="CREATECA" style={{ height: "20px", width: "auto", display: "block" }} />
+          <img src="/purologoblanco.svg" alt="CREATECA" style={{ height: "36px", width: "auto", display: "block" }} />
         </Link>
         <div className="flex items-center gap-8">
           <Link

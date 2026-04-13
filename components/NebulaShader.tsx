@@ -1,0 +1,251 @@
+"use client";
+
+import { useRef, useEffect } from "react";
+
+const VS = `attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}`;
+
+const FS = `
+precision highp float;
+uniform float t;
+uniform vec2 r;
+uniform vec2 m;
+
+#define PI 3.14159265
+#define TAU 6.28318530
+
+vec3 mod289(vec3 x){return x-floor(x/289.0)*289.0;}
+vec2 mod289(vec2 x){return x-floor(x/289.0)*289.0;}
+vec3 perm(vec3 x){return mod289(((x*34.0)+1.0)*x);}
+
+float snoise(vec2 v){
+  const vec4 C=vec4(0.211324865,0.366025404,-0.577350269,0.024390244);
+  vec2 i=floor(v+dot(v,C.yy));
+  vec2 x0=v-i+dot(i,C.xx);
+  vec2 i1=(x0.x>x0.y)?vec2(1,0):vec2(0,1);
+  vec4 x12=x0.xyxy+C.xxzz;
+  x12.xy-=i1;
+  i=mod289(i);
+  vec3 p=perm(perm(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));
+  vec3 mm=max(.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);
+  mm=mm*mm;mm=mm*mm;
+  vec3 x=2.0*fract(p*C.www)-1.0;
+  vec3 h=abs(x)-0.5;
+  vec3 ox=floor(x+0.5);
+  vec3 a0=x-ox;
+  mm*=1.79284291-0.85373472*(a0*a0+h*h);
+  vec3 g;
+  g.x=a0.x*x0.x+h.x*x0.y;
+  g.yz=a0.yz*x12.xz+h.yz*x12.yw;
+  return 130.0*dot(mm,g);
+}
+
+float fbm(vec2 p){
+  float f=0.0,w=0.5;
+  for(int i=0;i<6;i++){f+=w*snoise(p);p*=2.07;w*=0.47;}
+  return f;
+}
+
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+
+vec3 spectral(float w){
+  vec3 c;
+  w=clamp(w,0.0,1.0);
+  if(w<0.12) c=mix(vec3(0.45,0.0,0.02),vec3(0.9,0.05,0.0),w/0.12);
+  else if(w<0.22) c=mix(vec3(0.9,0.05,0.0),vec3(1.0,0.45,0.0),(w-0.12)/0.10);
+  else if(w<0.32) c=mix(vec3(1.0,0.45,0.0),vec3(1.0,0.85,0.1),(w-0.22)/0.10);
+  else if(w<0.45) c=mix(vec3(1.0,0.85,0.1),vec3(0.15,0.95,0.25),(w-0.32)/0.13);
+  else if(w<0.58) c=mix(vec3(0.15,0.95,0.25),vec3(0.0,0.85,0.85),(w-0.45)/0.13);
+  else if(w<0.72) c=mix(vec3(0.0,0.85,0.85),vec3(0.1,0.2,0.95),(w-0.58)/0.14);
+  else if(w<0.85) c=mix(vec3(0.1,0.2,0.95),vec3(0.55,0.05,0.85),(w-0.72)/0.13);
+  else c=mix(vec3(0.55,0.05,0.85),vec3(0.85,0.05,0.4),(w-0.85)/0.15);
+  return c;
+}
+
+vec3 iridescent(float angle,float energy){
+  float base=angle/TAU+0.5;
+  vec3 c=spectral(fract(base+energy*0.3));
+  c=mix(c,vec3(1.0,0.97,0.92),energy*energy*0.4);
+  return c;
+}
+
+void main(){
+  vec2 uv=gl_FragCoord.xy/r;
+  vec2 st=uv*2.0-1.0;
+  st.x*=r.x/r.y;
+
+  float cd=length(st);
+  float T=t*0.1;
+  float angle=atan(st.y,st.x);
+
+  vec2 warp=st;
+  warp+=0.28*vec2(
+    fbm(st*1.3+vec2(T*0.6,T*0.25)),
+    fbm(st*1.3+vec2(-T*0.4,T*0.55)+99.0)
+  );
+
+  vec2 mpos=(m*2.0-1.0)*vec2(r.x/r.y,1.0);
+  float md=length(st-mpos);
+  warp+=0.07*(st-mpos)/(md+0.5);
+
+  float n1=fbm(warp*0.8+vec2(T*0.3,-T*0.2));
+  float n2=fbm(warp*1.1+vec2(-T*0.4,T*0.5)+50.0);
+  float n3=fbm(warp*1.5+vec2(T*0.2,T*0.7)+100.0);
+  float n4=fbm(warp*0.5+vec2(-T*0.15,T*0.25)+150.0);
+
+  float wAngle=atan(warp.y,warp.x);
+  float wDist=length(warp);
+
+  vec3 col=vec3(0.0);
+
+  float spec1=fract(wAngle/TAU+0.5+n1*0.15+T*0.02);
+  col+=spectral(spec1)*smoothstep(-0.15,0.75,n1)*smoothstep(0.2,1.5,cd)*0.5;
+
+  float spec2=fract(wAngle/TAU+0.5+n2*0.2+0.33+T*0.015);
+  col+=spectral(spec2)*smoothstep(-0.1,0.7,n2)*smoothstep(0.3,1.6,cd)*0.35;
+
+  float chromeAngle=wAngle+n3*2.0;
+  float chromeEnergy=smoothstep(0.2,0.8,n3)*smoothstep(0.4,1.2,cd);
+  col+=iridescent(chromeAngle,chromeEnergy)*chromeEnergy*0.2;
+
+  float c1=sin(warp.x*5.0+warp.y*3.5+T*1.1);
+  float c2=sin(warp.x*3.5-warp.y*4.5-T*0.8);
+  float caustic=c1*c2;
+  caustic=smoothstep(0.65,0.95,caustic)*smoothstep(0.35,1.0,cd);
+  col+=spectral(fract(caustic*2.0+T*0.1+n4*0.3))*caustic*0.2;
+
+  float ringDist=abs(cd-0.85);
+  float ring=smoothstep(0.12,0.0,ringDist);
+  float sector=floor((angle+PI)/TAU*140.0);
+  float sH=hash(vec2(sector,floor(T*1.8)));
+  float frag=ring*step(0.55,sH)*smoothstep(0.04,0.0,ringDist-0.025*sH);
+  col+=spectral(fract(sector/140.0+T*0.05))*frag*0.2;
+
+  float r2d=abs(cd-0.6);
+  float r2=smoothstep(0.07,0.0,r2d);
+  float s2=floor((angle+PI)/TAU*100.0);
+  float sH2=hash(vec2(s2,floor(T*1.3)+77.0));
+  col+=spectral(fract(s2/100.0+T*0.03+0.5))*r2*step(0.65,sH2)*smoothstep(0.025,0.0,r2d-0.015*sH2)*0.14;
+
+  float r3d=abs(cd-0.38);
+  float r3=smoothstep(0.04,0.0,r3d);
+  float s3=floor((angle+PI)/TAU*60.0);
+  float sH3=hash(vec2(s3,floor(T*2.2)+55.0));
+  col+=spectral(fract(s3/60.0+T*0.07))*r3*step(0.72,sH3)*smoothstep(0.015,0.0,r3d-0.008*sH3)*0.1;
+
+  for(int i=0;i<3;i++){
+    float fi=float(i);
+    float yOff=0.4*sin(T*0.3+fi*2.1)+fi*0.3-0.3;
+    float streak=exp(-(st.y-yOff)*(st.y-yOff)*80.0);
+    streak*=smoothstep(0.3,1.5,abs(st.x))*smoothstep(0.3,0.7,sin(st.x*8.0+T*2.0+fi*4.0)*0.5+0.5)*smoothstep(0.5,1.0,cd);
+    col+=spectral(fi/3.0+T*0.03)*streak*0.07;
+  }
+
+  for(int i=0;i<16;i++){
+    float fi=float(i);
+    float pA=TAU*hash(vec2(fi,0.0))+T*(0.25+0.15*hash(vec2(fi,1.0)));
+    float pR=0.35+0.55*hash(vec2(fi,2.0));
+    vec2 pp=vec2(cos(pA),sin(pA))*pR;
+    float pd=length(st-pp);
+    float glow=0.002/(pd*pd+0.0008);
+    float pulse=sin(T*1.8+fi*1.3)*0.5+0.5;
+    vec3 pCol=spectral(fract(fi/16.0+T*0.02));
+    pCol=mix(pCol,vec3(1.0,0.97,0.92),pulse*0.3);
+    col+=pCol*glow*0.006*smoothstep(0.25,0.7,cd);
+  }
+
+  vec3 mCol=iridescent(atan(st.y-mpos.y,st.x-mpos.x),0.5);
+  col+=mCol*(0.05/(md+0.25))*0.04*smoothstep(0.2,0.8,cd);
+
+  float rx=smoothstep(0.15,0.55,abs(st.x*0.65));
+  float ry=smoothstep(0.1,0.5,abs(st.y*0.85));
+  col*=mix(0.02,1.0,max(rx,ry));
+
+  float grain=(hash(gl_FragCoord.xy+fract(T*73.0))-0.5)*0.03;
+  col+=grain;
+
+  col*=0.75;
+  col=pow(clamp(col,0.0,1.0),vec3(0.96));
+
+  gl_FragColor=vec4(col,1.0);
+}
+`;
+
+export default function NebulaShader() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: false });
+    if (!gl) return;
+
+    let mx = 0.5, my = 0.5, smx = 0.5, smy = 0.5;
+    let rafId: number;
+
+    const onMouseMove = (e: MouseEvent) => {
+      mx = e.clientX / window.innerWidth;
+      my = 1.0 - e.clientY / window.innerHeight;
+    };
+    window.addEventListener("mousemove", onMouseMove);
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio, 1.5);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    };
+    window.addEventListener("resize", resize);
+    resize();
+
+    const compileShader = (type: number, src: string) => {
+      const s = gl.createShader(type)!;
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return s;
+    };
+
+    const prog = gl.createProgram()!;
+    gl.attachShader(prog, compileShader(gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, FS));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+    const pLoc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(pLoc);
+    gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const uT = gl.getUniformLocation(prog, "t");
+    const uR = gl.getUniformLocation(prog, "r");
+    const uM = gl.getUniformLocation(prog, "m");
+    const t0 = performance.now();
+
+    const render = () => {
+      const elapsed = (performance.now() - t0) / 1000;
+      smx += (mx - smx) * 0.025;
+      smy += (my - smy) * 0.025;
+      gl.uniform1f(uT, elapsed);
+      gl.uniform2f(uR, canvas.width, canvas.height);
+      gl.uniform2f(uM, smx, smy);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      rafId = requestAnimationFrame(render);
+    };
+    rafId = requestAnimationFrame(render);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 0 }}
+    />
+  );
+}

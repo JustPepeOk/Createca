@@ -2,30 +2,36 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import BracketsScene from "./BracketsScene";
 
 export default function Manifiesto() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section ref={ref} className="bg-carbon py-28 px-6">
-      <div className="max-w-3xl mx-auto">
+    <section ref={ref} className="bg-carbon py-28 px-6 relative overflow-hidden">
+
+      {/* 3D brackets — fill the full section behind the text */}
+      <BracketsScene />
+
+      {/* Content on top */}
+      <div className="relative z-10 max-w-2xl mx-auto text-center">
+
         {/* Section label */}
         <motion.div
-          className="flex items-center gap-4 mb-12"
+          className="flex items-center gap-4 mb-16"
           initial={{ opacity: 0, y: 12 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
         >
-          <span className="font-mono text-[10px] text-orange tracking-[0.4em] uppercase">
+          <span className="font-mono text-xs md:text-sm text-orange tracking-[0.3em] uppercase">
             EL MANIFIESTO
           </span>
           <div className="flex-1 h-px bg-ghost/10" />
         </motion.div>
 
-        {/* Headline */}
         <motion.h2
-          className="font-mono text-xl sm:text-2xl md:text-3xl text-ghost leading-tight mb-10"
+          className="font-mono text-xl sm:text-2xl md:text-3xl text-ghost leading-tight mb-8 text-left"
           initial={{ opacity: 0, y: 12 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.15 }}
@@ -37,20 +43,8 @@ export default function Manifiesto() {
           </span>
         </motion.h2>
 
-        {/* Decorative bracket */}
         <motion.div
-          className="font-mono text-7xl text-ghost/5 leading-none mb-6 select-none"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          aria-hidden
-        >
-          [
-        </motion.div>
-
-        {/* Manifiesto body */}
-        <motion.div
-          className="space-y-5 font-sans text-sm text-ghost/70 leading-relaxed"
+          className="space-y-5 font-sans text-sm text-ghost/70 leading-relaxed text-left"
           initial={{ opacity: 0, y: 12 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.3 }}
@@ -76,16 +70,6 @@ export default function Manifiesto() {
           </p>
         </motion.div>
 
-        {/* Closing bracket */}
-        <motion.div
-          className="font-mono text-7xl text-ghost/5 leading-none mt-4 text-right select-none"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          aria-hidden
-        >
-          ]
-        </motion.div>
       </div>
     </section>
   );
