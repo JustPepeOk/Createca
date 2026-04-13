@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-carbon: #090909;
+  --color-orange: #931818;
+  --color-blue: #A6894B;
+  --color-sand: #DFA11D;
+  --color-ghost: #F5F2EB;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-carbon);
+  color: var(--color-ghost);
+  font-family: var(--font-inter), Inter, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-orange);
+  color: var(--color-ghost);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-carbon);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-blue);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-orange);
+}
+
+/* Typography utilities */
+.font-display {
+  font-family: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+}
+
+.font-body {
+  font-family: var(--font-inter), Inter, sans-serif;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 1px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+/* Hero — all animations CSS-only, no JS dependency */
+@keyframes slide-from-left {
+  from { transform: translateX(-110vw); }
+  to   { transform: translateX(0); }
+}
+@keyframes slide-from-right {
+  from { transform: translateX(110vw); }
+  to   { transform: translateX(0); }
+}
+@keyframes logo-reveal {
+  from { clip-path: inset(0 50% 0 50%); }
+  to   { clip-path: inset(0 0% 0 0%); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hand-adan {
+  animation: slide-from-left 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s both;
+}
+.hand-dios {
+  animation: slide-from-right 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s both;
+}
+.hero-logo {
+  animation: logo-reveal 1.4s cubic-bezier(0.25, 0.1, 0.25, 1) 2.4s both;
+}
+.hero-manifesto {
+  animation: fade-up 0.7s ease 3.8s both;
+}
+.hero-cta {
+  animation: fade-up 0.7s ease 4.0s both;
+}
+
+/* Hero ticker — CSS only, no JS */
+@keyframes hero-ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.hero-ticker {
+  display: inline-block;
+  animation: hero-ticker-scroll 28s linear infinite;
+}
