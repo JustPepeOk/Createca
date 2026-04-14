@@ -1,9 +1,11 @@
 "use client";
 
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
 import TVMask2020 from "./TVMask2020";
 import Chrome2026  from "./Chrome2026";
+
+const YEAR_H = "clamp(80px, 13vw, 200px)";
 
 const entries = [
   {
@@ -26,49 +28,47 @@ const entries = [
 
 export default function Historia() {
   const sectionRef = useRef(null);
-  const isInView   = useInView(sectionRef, { once: true, margin: "-80px" });
 
-  const YEAR_H = "clamp(80px, 13vw, 200px)";
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => { setDesktop(window.innerWidth >= 768); }, []);
+
+  const a = (opts: { y?: number; x?: number; scale?: boolean; delay?: number } = {}) =>
+    desktop
+      ? {
+          initial: { opacity: 0, y: opts.y ?? 0, x: opts.x ?? 0, scale: opts.scale ? 0 : undefined },
+          whileInView: { opacity: 1, y: 0, x: 0, scale: opts.scale ? 1 : undefined },
+          viewport: { once: true, margin: "0px" },
+          transition: { duration: 0.6, delay: opts.delay ?? 0 },
+        }
+      : { initial: false as const };
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
   const lineWidth  = useTransform(scrollYProgress, [0.1, 0.7],  ["0%", "100%"]);
   const lineHeight = useTransform(scrollYProgress, [0.05, 0.75], ["0%", "100%"]);
 
   return (
-    <section ref={sectionRef} className="bg-carbon overflow-hidden border-t border-ghost/5 timeline-grain relative">
-
-      {/* Section label */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20">
-        <motion.div
-          className="flex items-center gap-4"
-          initial={{ opacity: 0, y: 10 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-        >
-          <span className="font-mono text-xs md:text-sm text-ghost/30 tracking-[0.3em] uppercase">
-            Registro cronológico
-          </span>
-          <div className="flex-1 h-px bg-ghost/5" />
-        </motion.div>
-      </div>
+    <section ref={sectionRef} className="bg-[#002147] overflow-hidden border-t border-ghost/5 timeline-grain relative">
 
       {/* ── DESKTOP ── */}
       <div className="hidden md:block relative z-10">
 
-        {/* Year display row — all slots same height, items bottom-aligned */}
-        <div className="flex items-end justify-between px-16 select-none" style={{ height: YEAR_H }} aria-hidden>
+        <motion.div
+          className="flex items-center gap-3 px-16 pt-12 pb-6"
+          {...a({ y: 8 })}
+        >
+          <span className="font-mono text-xs text-ghost tracking-[0.3em] uppercase">
+            Registro cronológico
+          </span>
+          <div className="w-5 h-px bg-ghost/40" />
+        </motion.div>
 
-          {/* 2016 — pixel font */}
-          <motion.div
-            className="flex-1 flex justify-center items-end h-full"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.05 }}
-          >
+        <div className="flex items-end px-16 select-none" style={{ height: YEAR_H }} aria-hidden>
+
+          <motion.div className="flex-1 flex justify-center items-end h-full" {...a({ y: 20, delay: 0.05 })}>
             <span style={{
               fontFamily: "var(--font-press-start), monospace",
               fontSize: "clamp(40px, 6vw, 120px)",
-              color: "#3a3a3a",
+              color: "#F5F2EB",
               lineHeight: 1,
               letterSpacing: "-0.02em",
             }}>
@@ -76,25 +76,17 @@ export default function Historia() {
             </span>
           </motion.div>
 
-          {/* 2020 — video masked to text */}
-          <motion.div
-            className="flex-1 flex justify-center items-end h-full"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.18 }}
-          >
+          <div className="self-stretch w-px bg-ghost/[0.07]" />
+
+          <motion.div className="flex-1 flex justify-center items-end h-full" {...a({ delay: 0.18 })}>
             <div style={{ transform: "translateY(20px)", width: "100%" }}>
               <TVMask2020 style={{ width: "100%", height: "clamp(40px, 9vw, 180px)" }} />
             </div>
           </motion.div>
 
-          {/* 2026 — chrome 3D */}
-          <motion.div
-            className="flex-1 flex justify-center items-end h-full"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.26 }}
-          >
+          <div className="self-stretch w-px bg-ghost/[0.07]" />
+
+          <motion.div className="flex-1 flex justify-center items-end h-full" {...a({ y: 20, delay: 0.26 })}>
             <div style={{ transform: "translateY(87px)", width: "100%" }}>
               <Chrome2026 style={{ width: "100%", height: YEAR_H }} scale={1.2} />
             </div>
@@ -104,12 +96,13 @@ export default function Historia() {
 
         {/* Progress rail */}
         <div className="relative mx-16 mt-2">
-          <div className="h-px bg-ghost/10 w-full" />
+          <div className="h-[2px] bg-ghost/10 w-full" />
           <motion.div
-            className="absolute top-0 left-0 h-px origin-left"
+            className="absolute top-0 left-0 h-[2px] origin-left"
             style={{
               width: lineWidth,
               background: "linear-gradient(90deg,#3a3a3a 0%,#931818 50%,#DFA11D 100%)",
+              filter: "drop-shadow(0 0 4px rgba(223,161,29,0.35))",
             }}
           />
           <div className="absolute top-0 left-0 w-full flex justify-between" style={{ transform: "translateY(-50%)" }}>
@@ -117,20 +110,18 @@ export default function Historia() {
               <motion.div
                 key={entry.year}
                 className="relative flex items-center justify-center"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={isInView ? { scale: 1, opacity: 1 } : {}}
-                transition={{ duration: 0.4, delay: 0.3 + i * 0.15 }}
+                {...a({ scale: true, delay: 0.3 + i * 0.15 })}
               >
-                <div className={`w-2 h-2 rounded-full border ${
+                <div className={`rounded-full border ${
                   entry.active
-                    ? "bg-orange border-orange shadow-[0_0_8px_rgba(147,24,24,0.8)]"
-                    : "bg-carbon border-ghost/25"
+                    ? "w-3 h-3 bg-orange border-orange shadow-[0_0_12px_rgba(223,161,29,0.7)]"
+                    : "w-2 h-2 bg-[#002147] border-ghost/25"
                 }`} />
                 {entry.active && (
                   <motion.div
-                    className="absolute w-2 h-2 rounded-full border border-orange"
-                    animate={{ scale: [1, 2.5], opacity: [0.6, 0] }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                    className="absolute w-3 h-3 rounded-full border border-orange"
+                    animate={{ scale: [1, 2.8], opacity: [0.5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
                   />
                 )}
               </motion.div>
@@ -138,20 +129,24 @@ export default function Historia() {
           </div>
         </div>
 
-        {/* Labels + descriptions */}
+        {/* Labels */}
         <div className="grid grid-cols-3 px-16 mt-6 pb-20">
           {entries.map((entry, i) => (
             <motion.div
               key={entry.year}
-              className={i < entries.length - 1 ? "pr-8" : ""}
-              initial={{ opacity: 0, y: 10 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.4 + i * 0.15 }}
+              className={[
+                i === 1 ? "border-l border-ghost/[0.06] px-8" : "",
+                i === 2 ? "border-l border-ghost/[0.06] pl-8" : "",
+                i === 0 ? "pr-8" : "",
+              ].join(" ")}
+              {...a({ y: 10, delay: 0.4 + i * 0.15 })}
             >
-              <span className={`font-mono text-xs tracking-[0.3em] uppercase ${"labelStrike" in entry && entry.labelStrike ? "line-through decoration-ghost/30 text-ghost/25" : entry.active ? "text-orange" : "text-ghost/35"}`}>
+              <span className={`font-mono text-xs tracking-[0.3em] uppercase ${
+                entry.active ? "text-orange" : "text-ghost"
+              }`}>
                 — {entry.label}
               </span>
-              <p className={`font-sans text-sm leading-relaxed mt-3 ${entry.active ? "text-ghost/60" : "text-ghost/30"}`}>
+              <p className="font-sans text-sm leading-relaxed mt-3 text-ghost/80">
                 {entry.desc}
               </p>
             </motion.div>
@@ -160,66 +155,71 @@ export default function Historia() {
       </div>
 
       {/* ── MOBILE ── */}
-      <div className="md:hidden relative z-10 px-6 pt-10 pb-20">
-        <div className="absolute left-[30px] top-10 bottom-20 w-px bg-ghost/10" />
+      <div className="md:hidden relative z-10 pt-10 pb-20">
+
+        <div className="flex items-center gap-3 mb-10 px-5">
+          <span className="font-mono text-xs text-ghost tracking-[0.3em] uppercase">
+            Registro cronológico
+          </span>
+          <div className="w-4 h-px bg-ghost/40" />
+        </div>
+
+        <div className="absolute left-5 top-24 bottom-20 w-px bg-ghost/10" />
         <motion.div
-          className="absolute left-[30px] top-10 w-px origin-top"
-          style={{ height: lineHeight, background: "linear-gradient(180deg,#3a3a3a 0%,#931818 50%,#DFA11D 100%)" }}
+          className="absolute left-5 top-24 w-px origin-top"
+          style={{ height: lineHeight, background: "linear-gradient(180deg,#3a3a3a 0%,#931818 50%,#DFA11D 100%)", filter: "drop-shadow(0 0 3px rgba(223,161,29,0.3))" }}
         />
 
-        <div className="flex flex-col gap-14">
+        <div className="flex flex-col gap-12">
           {entries.map((entry, i) => (
-            <motion.div
+            <div
               key={entry.year}
-              className="flex gap-6 items-start"
-              initial={{ opacity: 0, x: -16 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 + i * 0.18 }}
+              className="flex items-start"
+              style={{ paddingLeft: "20px", gap: "16px" }}
             >
-              {/* Dot */}
-              <div className="relative flex-shrink-0 mt-3" style={{ width: 8 }}>
-                <div className={`w-2 h-2 rounded-full border ${
-                  entry.active ? "bg-orange border-orange shadow-[0_0_8px_rgba(147,24,24,0.8)]" : "bg-carbon border-ghost/25"
-                }`} />
+              <div className="relative flex-shrink-0 mt-2" style={{ width: 10 }}>
+                <div className={`rounded-full border ${
+                  entry.active ? "w-3 h-3 bg-orange border-orange shadow-[0_0_10px_rgba(223,161,29,0.7)]" : "w-2 h-2 bg-[#002147] border-ghost/25"
+                }`} style={{ marginLeft: "-1px" }} />
                 {entry.active && (
                   <motion.div
                     className="absolute inset-0 rounded-full border border-orange"
-                    animate={{ scale: [1, 2.5], opacity: [0.6, 0] }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                    animate={{ scale: [1, 2.8], opacity: [0.5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
                   />
                 )}
               </div>
 
-              {/* Content */}
-              <div className="flex-1">
-                {/* Year display */}
+              <div className="flex-1 pr-5">
                 {entry.year === "2016" && (
                   <span style={{
                     fontFamily: "var(--font-press-start), monospace",
-                    fontSize: "clamp(18px, 5vw, 32px)",
-                    color: "#3a3a3a",
+                    fontSize: "clamp(22px, 7vw, 40px)",
+                    color: "#F5F2EB",
                     display: "block",
                     lineHeight: 1.2,
-                    marginBottom: 10,
+                    marginBottom: 12,
                   }}>
                     2016
                   </span>
                 )}
                 {entry.year === "2020" && (
-                  <TVMask2020 style={{ width: "100%", height: "clamp(40px, 10vw, 72px)", marginBottom: 10 }} />
+                  <TVMask2020 style={{ width: "100%", height: "clamp(50px, 16vw, 80px)", marginBottom: 12 }} />
                 )}
                 {entry.year === "2026" && (
-                  <Chrome2026 style={{ width: "100%", height: "clamp(40px, 10vw, 72px)", marginBottom: 10 }} />
+                  <Chrome2026 style={{ width: "100%", height: "clamp(50px, 16vw, 80px)", marginBottom: 12 }} scale={1.2} />
                 )}
 
-                <span className={`font-mono text-xs tracking-[0.3em] uppercase block mb-2 ${"labelStrike" in entry && entry.labelStrike ? "line-through decoration-ghost/30 text-ghost/25" : entry.active ? "text-orange" : "text-ghost/35"}`}>
+                <span className={`font-mono text-xs tracking-[0.3em] uppercase block mb-2 ${
+                  entry.active ? "text-orange" : "text-ghost"
+                }`}>
                   — {entry.label}
                 </span>
-                <p className={`font-sans text-sm leading-relaxed ${entry.active ? "text-ghost/60" : "text-ghost/30"}`}>
+                <p className="font-sans text-sm leading-relaxed text-ghost/80">
                   {entry.desc}
                 </p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

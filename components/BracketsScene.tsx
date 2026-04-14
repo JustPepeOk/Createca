@@ -8,7 +8,9 @@ export default function BracketsScene({ className = "" }: { className?: string }
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const factorRef = useRef(0.47);
-  const dimRef = useRef({ w: 800, h: 400 });
+  const dimRef    = useRef({ w: 800, h: 400 });
+  const rotYRef   = useRef(0.30);
+  const rotXRef   = useRef(0);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -32,10 +34,10 @@ export default function BracketsScene({ className = "" }: { className?: string }
     const camera = new THREE.PerspectiveCamera(V_FOV_DEG, w / h, 0.1, 100);
     camera.position.set(0, 0, CAMERA_Z);
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x090909, 1);
+    renderer.setClearColor(0x000000, 0);
     (renderer as any).toneMapping = THREE.ACESFilmicToneMapping;
     (renderer as any).toneMappingExposure = 1.3;
     (renderer as any).outputEncoding = (THREE as any).sRGBEncoding;
@@ -72,21 +74,21 @@ export default function BracketsScene({ className = "" }: { className?: string }
 
     const envScene = new THREE.Scene();
     const panels: { c: number; p: [number,number,number]; r: [number,number,number]; s: [number,number] }[] = [
-      { c: 0xff2200, p: [12,4,2],    r: [0,-1.4,0],      s: [10,14] },
-      { c: 0xff6600, p: [10,-2,6],   r: [0,-1.2,0.2],    s: [8,10]  },
-      { c: 0x00ff66, p: [-12,2,0],   r: [0,1.4,0],       s: [10,14] },
-      { c: 0x00ccaa, p: [-10,-4,5],  r: [0,1.2,-0.1],    s: [8,10]  },
-      { c: 0x2244ff, p: [2,12,0],    r: [1.4,0,0],       s: [14,10] },
-      { c: 0x8800ff, p: [-3,11,4],   r: [1.3,0.2,0],     s: [8,8]   },
-      { c: 0xff0088, p: [0,-12,2],   r: [-1.4,0,0],      s: [14,10] },
-      { c: 0xcc00ff, p: [4,-10,-3],  r: [-1.3,0.1,0],    s: [8,8]   },
-      { c: 0xffcc00, p: [0,3,12],    r: [0,Math.PI,0],   s: [10,10] },
-      { c: 0x00ddff, p: [0,-2,-12],  r: [0,0,0],         s: [12,10] },
+      { c: 0xff00ff, p: [12,4,2],    r: [0,-1.4,0],      s: [10,14] },
+      { c: 0xaa00ff, p: [10,-2,6],   r: [0,-1.2,0.2],    s: [8,10]  },
+      { c: 0x00ffff, p: [-12,2,0],   r: [0,1.4,0],       s: [10,14] },
+      { c: 0x00ff88, p: [-10,-4,5],  r: [0,1.2,-0.1],    s: [8,10]  },
+      { c: 0x0044ff, p: [2,12,0],    r: [1.4,0,0],       s: [14,10] },
+      { c: 0x6600ff, p: [-3,11,4],   r: [1.3,0.2,0],     s: [8,8]   },
+      { c: 0xff0077, p: [0,-12,2],   r: [-1.4,0,0],      s: [14,10] },
+      { c: 0xff44dd, p: [4,-10,-3],  r: [-1.3,0.1,0],    s: [8,8]   },
+      { c: 0x00ddff, p: [0,3,12],    r: [0,Math.PI,0],   s: [10,10] },
+      { c: 0x33ff99, p: [0,-2,-12],  r: [0,0,0],         s: [12,10] },
       { c: 0xffffff, p: [5,8,8],     r: [-0.4,-0.3,0],   s: [4,4]   },
-      { c: 0xeeeeee, p: [-4,6,10],   r: [-0.3,0.2,0],    s: [3,3]   },
-      { c: 0x080808, p: [6,-6,-8],   r: [0.3,0.4,0],     s: [12,12] },
-      { c: 0x050505, p: [-6,6,-6],   r: [-0.2,-0.3,0],   s: [10,10] },
-      { c: 0x0a0a0a, p: [0,-8,-4],   r: [0.5,0,0],       s: [16,8]  },
+      { c: 0xddaaff, p: [-4,6,10],   r: [-0.3,0.2,0],    s: [3,3]   },
+      { c: 0x010101, p: [6,-6,-8],   r: [0.3,0.4,0],     s: [12,12] },
+      { c: 0x020202, p: [-6,6,-6],   r: [-0.2,-0.3,0],   s: [10,10] },
+      { c: 0x030303, p: [0,-8,-4],   r: [0.5,0,0],       s: [16,8]  },
     ];
     panels.forEach(({ c, p, r, s }) => {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(s[0], s[1]), new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide }));
@@ -97,7 +99,7 @@ export default function BracketsScene({ className = "" }: { className?: string }
     const cubeCamera = new THREE.CubeCamera(0.1, 50, cubeRT);
     cubeCamera.update(renderer, envScene);
 
-    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1.0, roughness: 0.03, envMap: cubeRT.texture, envMapIntensity: 2.5 });
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1.0, roughness: 0.0, envMap: cubeRT.texture, envMapIntensity: 4.0 });
 
     const leftBracket = new THREE.Mesh(leftGeo, chromeMat);
     leftBracket.position.x = -bracketX(w, h, factorRef.current);
@@ -110,11 +112,11 @@ export default function BracketsScene({ className = "" }: { className?: string }
     scene.add(rightBracket);
 
     scene.add(new THREE.AmbientLight(0x111111, 0.2));
-    const key = new THREE.PointLight(0xfff5e6, 0.6, 30); key.position.set(4, 5, 8); scene.add(key);
-    const fill = new THREE.PointLight(0xe6eeff, 0.3, 25); fill.position.set(-5, 2, 7); scene.add(fill);
-    const rim = new THREE.PointLight(0xffffff, 0.5, 25); rim.position.set(0, -4, -6); scene.add(rim);
-    const warm = new THREE.PointLight(0xff6633, 0.15, 20); warm.position.set(8, 4, 3); scene.add(warm);
-    const cool = new THREE.PointLight(0x33aacc, 0.12, 20); cool.position.set(-8, -2, 3); scene.add(cool);
+    const key  = new THREE.PointLight(0xffffff, 0.4,  30); key.position.set(4, 5, 8);    scene.add(key);
+    const fill = new THREE.PointLight(0xaaaaff, 0.3,  25); fill.position.set(-5, 2, 7);  scene.add(fill);
+    const rim  = new THREE.PointLight(0xff88ff, 0.4,  25); rim.position.set(0, -4, -6);  scene.add(rim);
+    const warm = new THREE.PointLight(0xff00cc, 0.25, 20); warm.position.set(8, 4, 3);   scene.add(warm);
+    const cool = new THREE.PointLight(0x00ffee, 0.2,  20); cool.position.set(-8, -2, 3); scene.add(cool);
 
     let mx = 0, my = 0;
     const onMouseMove = (e: MouseEvent) => {
@@ -153,13 +155,16 @@ export default function BracketsScene({ className = "" }: { className?: string }
       const breathe = Math.sin(t * 0.4) * 0.1;
       const sway = Math.sin(t * 0.25) * 0.06;
 
-      leftBracket.rotation.y = sway + mx * 0.12;
-      leftBracket.rotation.x = breathe * 0.3 + my * 0.08;
+      const ry = rotYRef.current;
+      const rx = rotXRef.current;
+
+      leftBracket.rotation.y = ry + sway + mx * 0.12;
+      leftBracket.rotation.x = rx + breathe * 0.3 + my * 0.08;
       leftBracket.rotation.z = Math.sin(t * 0.3) * 0.02;
       leftBracket.position.y = Math.sin(t * 0.35) * 0.1;
 
-      rightBracket.rotation.y = -sway - mx * 0.12;
-      rightBracket.rotation.x = -breathe * 0.3 - my * 0.08;
+      rightBracket.rotation.y = -ry - sway - mx * 0.12;
+      rightBracket.rotation.x = rx - breathe * 0.3 - my * 0.08;
       rightBracket.rotation.z = -Math.sin(t * 0.3 + 0.5) * 0.02;
       rightBracket.position.y = Math.sin(t * 0.35 + 1.0) * 0.1;
 
