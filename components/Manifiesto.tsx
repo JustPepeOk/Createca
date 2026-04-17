@@ -1,44 +1,52 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import BracketsScene from "./BracketsScene";
+import { gsap } from "gsap";
 
 export default function Manifiesto() {
-  const [desktop, setDesktop] = useState(false);
-  useEffect(() => { setDesktop(window.innerWidth >= 768); }, []);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  const a = (y = 12, delay = 0) => desktop
-    ? { initial: { opacity: 0, y }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "0px" }, transition: { duration: 0.6, delay } }
-    : { initial: false as const };
+  useEffect(() => {
+    gsap.set(sectionRef.current, { autoAlpha: 0 });
+
+    const onEnter = () => gsap.to(sectionRef.current, { autoAlpha: 1, duration: 0.8, ease: "power2.out", overwrite: true });
+    const onLeave = () => gsap.to(sectionRef.current, { autoAlpha: 0, duration: 0.3, ease: "power2.in", overwrite: true });
+
+    window.addEventListener("hero-done", onEnter);
+    window.addEventListener("hero-back", onLeave);
+    return () => {
+      window.removeEventListener("hero-done", onEnter);
+      window.removeEventListener("hero-back", onLeave);
+    };
+  }, []);
 
   return (
-    <section className="bg-ghost py-28 px-6 relative overflow-hidden">
+    <section
+      ref={sectionRef}
+      id="manifiesto"
+      className="bg-carbon px-6 overflow-hidden flex items-center justify-center"
+      style={{ position: "fixed", inset: 0, zIndex: 35 }}
+    >
       <BracketsScene />
-      <div className="relative z-10 max-w-2xl mx-auto text-center">
+      <div className="relative z-10 max-w-3xl mx-auto text-center px-4">
 
-        <motion.div className="flex items-center gap-4 mb-16" {...a(12, 0)}>
-          <span className="font-mono text-xs md:text-sm text-orange tracking-[0.3em] uppercase">
+        <div className="flex items-center gap-4 mb-12">
+          <span className="font-mono text-sm text-orange tracking-[0.3em] uppercase">
             EL MANIFIESTO
           </span>
-          <div className="flex-1 h-px bg-carbon/15" />
-        </motion.div>
+          <div className="flex-1 h-px bg-ghost/15" />
+        </div>
 
-        <motion.h2
-          className="font-mono text-xl sm:text-2xl md:text-3xl text-carbon leading-tight mb-8 text-left"
-          {...a(12, 0.15)}
-        >
+        <h2 className="font-mono text-3xl sm:text-4xl md:text-5xl text-ghost leading-tight mb-10 text-left">
           La creatividad no es un impulso.
           <br />
-          <span className="text-carbon/50">
+          <span className="text-ghost/50">
             Es un sistema de preservación estratégica.
           </span>
-        </motion.h2>
+        </h2>
 
-        <motion.div
-          className="space-y-5 font-sans text-sm text-carbon/65 leading-relaxed text-left"
-          {...a(12, 0.3)}
-        >
+        <div className="space-y-6 font-sans text-base text-ghost/75 leading-relaxed text-left">
           <p>
             Vivimos en un momento donde todo comunica y nada permanece. Las marcas
             se construyen en segundos y colapsan en menos tiempo. La velocidad se
@@ -55,10 +63,10 @@ export default function Manifiesto() {
             diseño por estética ni marketing por volumen. Construimos sistemas que
             le dan forma a las ideas y dirección a las marcas que quieren perdurar.
           </p>
-          <p className="font-mono text-xs text-carbon/35 tracking-widest pt-2">
+          <p className="font-mono text-xs text-ghost/35 tracking-widest pt-2">
             — CREATECA, 2026
           </p>
-        </motion.div>
+        </div>
 
       </div>
     </section>

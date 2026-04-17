@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrome Brackets [ ]</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;overflow:hidden}
+canvas{display:block;width:100vw;height:100vh}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const canvas = document.getElementById('c');
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 0, 16);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x0a0a0a, 1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.3;
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+// === BRACKET PROPORTIONS — CREATECA style: tall, slim, short arms ===
+const H = 7.5;      // tall
+const W = 1.5;      // short arms (~20% of height)
+const T = 0.42;     // slim bar thickness
+const D = 0.85;     // depth
+
+const extrudeSettings = {
+  depth: D,
+  bevelEnabled: false,
+  bevelThickness: 0.04,
+  bevelSize: 0.04,
+  bevelSegments: 2,
+};
+
+// [ shape — vertical bar left, short arms right
+const leftShape = new THREE.Shape();
+leftShape.moveTo(0, 0);
+leftShape.lineTo(W, 0);
+leftShape.lineTo(W, T);
+leftShape.lineTo(T, T);
+leftShape.lineTo(T, H - T);
+leftShape.lineTo(W, H - T);
+leftShape.lineTo(W, H);
+leftShape.lineTo(0, H);
+leftShape.lineTo(0, 0);
+
+// ] shape — vertical bar right, short arms left
+const rightShape = new THREE.Shape();
+rightShape.moveTo(0, 0);
+rightShape.lineTo(W, 0);
+rightShape.lineTo(W, H);
+rightShape.lineTo(0, H);
+rightShape.lineTo(0, H - T);
+rightShape.lineTo(W - T, H - T);
+rightShape.lineTo(W - T, T);
+rightShape.lineTo(0, T);
+rightShape.lineTo(0, 0);
+
+function centerGeo(geo) {
+  geo.computeBoundingBox();
+  const b = geo.boundingBox;
+  geo.translate(-(b.max.x+b.min.x)/2, -(b.max.y+b.min.y)/2, -(b.max.z+b.min.z)/2);
+  return geo;
+}
+
+const leftGeo = centerGeo(new THREE.ExtrudeGeometry(leftShape, extrudeSettings));
+const rightGeo = centerGeo(new THREE.ExtrudeGeometry(rightShape, extrudeSettings));
+
+// === CHROME ENVIRONMENT — colorful panels for iridescent reflections ===
+const envScene = new THREE.Scene();
+
+const panels = [
+  // === NEUTRAL CHROME — large white/gray panels dominate ===
+  { c: 0xffffff, p: [0,3,12], r: [0,Math.PI,0], s: [14,14] },
+  { c: 0xe8e8e8, p: [4,6,10], r: [-0.3,-0.2,0], s: [8,8] },
+  { c: 0xdddddd, p: [-3,5,11], r: [-0.2,0.15,0], s: [6,6] },
+  { c: 0xcccccc, p: [0,-4,10], r: [0.2,0,0], s: [10,6] },
+  // === SUBTLE RED TINT — small, muted ===
+  { c: 0x3a1010, p: [12,3,2], r: [0,-1.4,0], s: [8,12] },
+  { c: 0x2a0c0c, p: [9,-4,5], r: [0,-1.1,0.2], s: [6,8] },
+  // === SUBTLE BLUE TINT — small, muted ===
+  { c: 0x0a1525, p: [-12,3,2], r: [0,1.4,0], s: [8,12] },
+  { c: 0x081020, p: [-9,-4,5], r: [0,1.1,-0.2], s: [6,8] },
+  // === TOP/BOTTOM — near black with hint ===
+  { c: 0x1a0808, p: [0,12,0], r: [1.4,0,0], s: [14,10] },
+  { c: 0x080e1a, p: [0,-12,0], r: [-1.4,0,0], s: [14,10] },
+  // === BACK — dark ===
+  { c: 0x040404, p: [0,0,-12], r: [0,0,0], s: [16,14] },
+  // === DARKS for contrast/depth ===
+  { c: 0x080808, p: [6,-6,-8], r: [0.3,0.4,0], s: [12,12] },
+  { c: 0x050505, p: [-6,6,-6], r: [-0.2,-0.3,0], s: [10,10] },
+  { c: 0x060606, p: [0,-8,-4], r: [0.5,0,0], s: [16,8] },
+];
+
+panels.forEach(({ c, p, r, s }) => {
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(s[0], s[1]),
+    new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide })
+  );
+  m.position.set(...p);
+  m.rotation.set(...r);
+  envScene.add(m);
+});
+
+const cubeRT = new THREE.WebGLCubeRenderTarget(512, {
+  format: THREE.RGBAFormat,
+  generateMipmaps: true,
+  minFilter: THREE.LinearMipmapLinearFilter,
+});
+const cubeCamera = new THREE.CubeCamera(0.1, 50, cubeRT);
+cubeCamera.update(renderer, envScene);
+
+// === CHROME MATERIAL ===
+const chromeMat = new THREE.MeshStandardMaterial({
+  color: 0xdddddd,
+  metalness: 1.0,
+  roughness: 0.03,
+  envMap: cubeRT.texture,
+  envMapIntensity: 2.0,
+});
+
+// === PLACE BRACKETS ===
+// Left [ as group with one prism bar
+const leftGroup = new THREE.Group();
+leftGroup.add(new THREE.Mesh(leftGeo, chromeMat));
+
+// prism bars alongside bracket
+const prismGeo = new THREE.BoxGeometry(0.04, H, D);
+const prismMesh = new THREE.Mesh(prismGeo, chromeMat);
+prismMesh.position.set(-W/2 - 0.06, 0, 0);
+leftGroup.add(prismMesh);
+
+const prism2Geo = new THREE.BoxGeometry(0.022, H, D);
+const prism2Mesh = new THREE.Mesh(prism2Geo, chromeMat);
+prism2Mesh.position.set(-W/2 - 0.12, 0, 0);
+leftGroup.add(prism2Mesh);
+
+const prism3Geo = new THREE.BoxGeometry(0.014, H, D);
+const prism3Mesh = new THREE.Mesh(prism3Geo, chromeMat);
+prism3Mesh.position.set(-W/2 - 0.17, 0, 0);
+leftGroup.add(prism3Mesh);
+
+// prisms at patitas (arm tips) — extending outward from the right edge of arms
+// top arm: center y = H/2 - T/2
+const topArmY = H/2 - T/2;
+const botArmY = -H/2 + T/2;
+
+// first patita prism: same thickness as first side prism
+const patGeo1 = new THREE.BoxGeometry(0.04, T, D);
+
+const patTopMesh1 = new THREE.Mesh(patGeo1, chromeMat);
+patTopMesh1.position.set(W/2 + 0.06, topArmY, 0);
+leftGroup.add(patTopMesh1);
+
+const patBotMesh1 = new THREE.Mesh(patGeo1, chromeMat);
+patBotMesh1.position.set(W/2 + 0.06, botArmY, 0);
+leftGroup.add(patBotMesh1);
+
+// second patita prism: thinner, further out
+const patGeo2 = new THREE.BoxGeometry(0.014, T, D);
+
+const patTopMesh2 = new THREE.Mesh(patGeo2, chromeMat);
+patTopMesh2.position.set(W/2 + 0.12, topArmY, 0);
+leftGroup.add(patTopMesh2);
+
+const patBotMesh2 = new THREE.Mesh(patGeo2, chromeMat);
+patBotMesh2.position.set(W/2 + 0.12, botArmY, 0);
+leftGroup.add(patBotMesh2);
+
+// inner prisms — inside the vertical bar, parallel to it
+const inGeo1 = new THREE.BoxGeometry(0.04, H, D);
+const inMesh1 = new THREE.Mesh(inGeo1, chromeMat);
+inMesh1.position.set(-W/2 + T + 0.06, 0, 0);
+leftGroup.add(inMesh1);
+
+const inGeo2 = new THREE.BoxGeometry(0.014, H, D);
+const inMesh2 = new THREE.Mesh(inGeo2, chromeMat);
+inMesh2.position.set(-W/2 + T + 0.12, 0, 0);
+leftGroup.add(inMesh2);
+
+leftGroup.position.x = -4.0;
+scene.add(leftGroup);
+
+const rightGroup = new THREE.Group();
+rightGroup.add(new THREE.Mesh(rightGeo, chromeMat));
+
+// side prisms — right of vertical bar (mirrored)
+const rPrism1 = new THREE.Mesh(new THREE.BoxGeometry(0.04, H, D), chromeMat);
+rPrism1.position.set(W/2 + 0.06, 0, 0);
+rightGroup.add(rPrism1);
+
+const rPrism2 = new THREE.Mesh(new THREE.BoxGeometry(0.022, H, D), chromeMat);
+rPrism2.position.set(W/2 + 0.12, 0, 0);
+rightGroup.add(rPrism2);
+
+const rPrism3 = new THREE.Mesh(new THREE.BoxGeometry(0.014, H, D), chromeMat);
+rPrism3.position.set(W/2 + 0.17, 0, 0);
+rightGroup.add(rPrism3);
+
+// patita prisms — left of arm tips (mirrored)
+const rPatTop1 = new THREE.Mesh(new THREE.BoxGeometry(0.04, T, D), chromeMat);
+rPatTop1.position.set(-W/2 - 0.06, topArmY, 0);
+rightGroup.add(rPatTop1);
+
+const rPatBot1 = new THREE.Mesh(new THREE.BoxGeometry(0.04, T, D), chromeMat);
+rPatBot1.position.set(-W/2 - 0.06, botArmY, 0);
+rightGroup.add(rPatBot1);
+
+const rPatTop2 = new THREE.Mesh(new THREE.BoxGeometry(0.014, T, D), chromeMat);
+rPatTop2.position.set(-W/2 - 0.12, topArmY, 0);
+rightGroup.add(rPatTop2);
+
+const rPatBot2 = new THREE.Mesh(new THREE.BoxGeometry(0.014, T, D), chromeMat);
+rPatBot2.position.set(-W/2 - 0.12, botArmY, 0);
+rightGroup.add(rPatBot2);
+
+// inner prisms — inside right bracket's vertical bar
+const rInMesh1 = new THREE.Mesh(new THREE.BoxGeometry(0.04, H, D), chromeMat);
+rInMesh1.position.set(W/2 - T - 0.06, 0, 0);
+rightGroup.add(rInMesh1);
+
+const rInMesh2 = new THREE.Mesh(new THREE.BoxGeometry(0.014, H, D), chromeMat);
+rInMesh2.position.set(W/2 - T - 0.12, 0, 0);
+rightGroup.add(rInMesh2);
+
+rightGroup.position.x = 4.0;
+scene.add(rightGroup);
+
+// === LIGHTS ===
+scene.add(new THREE.AmbientLight(0x111111, 0.2));
+
+const key = new THREE.PointLight(0xfff5e6, 0.6, 30);
+key.position.set(4, 5, 8);
+scene.add(key);
+
+const fill = new THREE.PointLight(0xe6eeff, 0.3, 25);
+fill.position.set(-5, 2, 7);
+scene.add(fill);
+
+const rim = new THREE.PointLight(0xffffff, 0.5, 25);
+rim.position.set(0, -4, -6);
+scene.add(rim);
+
+const warm = new THREE.PointLight(0xff6633, 0.15, 20);
+warm.position.set(8, 4, 3);
+scene.add(warm);
+
+const cool = new THREE.PointLight(0x33aacc, 0.12, 20);
+cool.position.set(-8, -2, 3);
+scene.add(cool);
+
+// === MOUSE ===
+let mx = 0, my = 0;
+document.addEventListener('mousemove', e => {
+  mx = (e.clientX / window.innerWidth - 0.5) * 2;
+  my = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+// === RESIZE ===
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// === ANIMATE ===
+const clock = new THREE.Clock();
+let frame = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  const breathe = Math.sin(t * 0.4) * 0.1;
+  const sway = Math.sin(t * 0.25) * 0.06;
+
+  // left [
+  leftGroup.rotation.y = sway + mx * 0.12;
+  leftGroup.rotation.x = breathe * 0.3 + my * 0.08;
+  leftGroup.rotation.z = Math.sin(t * 0.3) * 0.02;
+  leftGroup.position.y = Math.sin(t * 0.35) * 0.1;
+
+  // right ] — mirrored movement
+  rightGroup.rotation.y = -sway - mx * 0.12;
+  rightGroup.rotation.x = -breathe * 0.3 - my * 0.08;
+  rightGroup.rotation.z = -Math.sin(t * 0.3 + 0.5) * 0.02;
+  rightGroup.position.y = Math.sin(t * 0.35 + 1.0) * 0.1;
+
+  // orbit accent lights
+  warm.position.x = 8 + Math.sin(t * 0.3) * 3;
+  warm.position.y = 4 + Math.cos(t * 0.25) * 2;
+  cool.position.x = -8 + Math.cos(t * 0.35) * 3;
+
+  // update env reflections periodically
+  frame++;
+  if (frame % 90 === 0) {
+    envScene.children.forEach((child, i) => {
+      if (i < 10) {
+        child.rotation.z += 0.015;
+        child.position.y += Math.sin(t * 0.08 + i) * 0.03;
+      }
+    });
+    cubeCamera.update(renderer, envScene);
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
+</script>
+</body>
+</html>

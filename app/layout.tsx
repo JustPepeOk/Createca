@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Inter, Press_Start_2P } from "next/font/google";
+import { JetBrains_Mono, Press_Start_2P } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -11,9 +11,9 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+const bahnschrift = localFont({
+  src: "../public/fonts/bahnschrift.ttf",
+  variable: "--font-bahnschrift",
   display: "swap",
 });
 
@@ -48,12 +48,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${jetbrainsMono.variable} ${inter.variable} ${pressStart.variable}`}>
+    <html lang="es" className={`${jetbrainsMono.variable} ${bahnschrift.variable} ${pressStart.variable}`} style={{ visibility: 'hidden' }}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `history.scrollRestoration='manual';`}} />
+      </head>
       <body>
         <ScrollToTop />
         <Navbar />
         <main>{children}</main>
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );

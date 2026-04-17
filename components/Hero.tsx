@@ -1,84 +1,154 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import Link from "next/link";
-import NebulaShader from "./NebulaShader";
-import { useState } from "react";
+import DataVortex, { VortexParams } from "./DataVortex";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const TICKER_TEXT =
-  "CREATIVITY / THROUGH / IRREGULAR / VISION · STRATEGIC MARKETING · VISUAL IDENTITY · DISRUPTIVE PROJECTS · MÉXICO · 2026 · ";
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
-  const [handsReady, setHandsReady] = useState(false);
+  const vortexRef = useRef<VortexParams>({
+    innerR: 0.74, outerR: 1.56, genIn: 0.10, genOut: 0.25, speed: 0.080, mouse: 0.030,
+  });
+
+  const sectionRef    = useRef<HTMLElement>(null);
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
+  const contentRef    = useRef<HTMLDivElement>(null);
+  const overlayRef    = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "+=220%",
+          scrub: 1.4,
+          pin: true,
+          pinSpacing: true,
+          anticipatePin: 1,
+          onLeave: () => window.dispatchEvent(new Event("hero-done")),
+          onEnterBack: () => window.dispatchEvent(new Event("hero-back")),
+        },
+      });
+
+      // Phase 1 — logo + texto + botón desaparecen (0–30%)
+      tl.to(contentRef.current, {
+        autoAlpha: 0,
+        duration: 0.30,
+        ease: "power2.in",
+      }, 0);
+
+      // Phase 2 — zoom hacia adentro del vórtice (20–100%)
+      tl.to(canvasWrapRef.current, {
+        scale: 7,
+        duration: 1.0,
+        ease: "power2.in",
+      }, 0.18);
+
+      // Animar los uniforms del shader en paralelo: el ring se expande y la corona desaparece
+      tl.to(vortexRef.current, {
+        innerR: 0.03,
+        outerR: 4.0,
+        genIn:  0.03,
+        genOut: 1.2,
+        speed:  0.025,
+        duration: 1.0,
+        ease: "power2.in",
+      }, 0.18);
+
+      // Phase 3 — overlay negro entra (75–100%)
+      tl.to(overlayRef.current, {
+        autoAlpha: 1,
+        duration: 0.30,
+        ease: "power1.in",
+      }, 0.72);
+
+
+    });
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section id="hero" className="relative min-h-screen bg-carbon overflow-hidden">
+    <section
+      ref={sectionRef}
+      id="hero"
+      className="relative min-h-screen bg-carbon overflow-hidden"
+    >
+      {/* Vórtice — este div es el que se escala */}
+      <div
+        ref={canvasWrapRef}
+        style={{ position: "absolute", inset: 0, transformOrigin: "50% 50%" }}
+      >
+        <DataVortex paramsRef={vortexRef} />
+      </div>
 
-      {/* ── Background ── */}
-      <NebulaShader />
-
-      {/* ── Content ── */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center gap-6
-                      pb-[30vh] md:pb-[38vh]"
-           style={{ transform: "translateY(74px)" }}>
-
-        {/* Logo — visible desde el inicio, sin animación */}
-        <div className="w-56 sm:w-72 md:w-[480px] lg:w-[580px]">
+      {/* Contenido */}
+      <div
+        ref={contentRef}
+        className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center"
+        style={{ transform: "translateY(74px)", paddingBottom: "9vh", gap: 0 }}
+      >
+        <div style={{ width: 561, marginBottom: 24 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo_blanco.svg" alt="CREATECA" className="w-full" />
         </div>
 
-        {/* Leyenda y CTA — aparecen cuando las manos terminan */}
-        <p className={`font-sans text-sm text-ghost/60 max-w-xs ${handsReady ? "hero-reveal" : "opacity-0"}`}>
+        <p style={{
+          fontFamily: "var(--font-inter), Inter, sans-serif",
+          fontSize: 15,
+          opacity: 0.60,
+          color: "#F5F2EB",
+          maxWidth: "20rem",
+          marginBottom: 15,
+        }}>
           La creatividad sin estructura es solo ruido.
         </p>
 
-        <div className={`w-full sm:w-auto ${handsReady ? "hero-reveal" : "opacity-0"}`}>
-          <Link
-            href="/contacto"
-            className="block sm:inline-block font-mono text-xs tracking-[0.25em] uppercase px-8 py-3 border border-orange text-orange hover:bg-orange hover:text-ghost transition-all duration-200"
+        <div className="w-full sm:w-auto">
+          <a
+            href="#contacto"
+            onClick={e => {
+              e.preventDefault();
+              document.getElementById("contacto")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            style={{
+              display: "inline-block",
+              fontFamily: "var(--font-jetbrains-mono), monospace",
+              fontSize: 14,
+              letterSpacing: "0.25em",
+              textTransform: "uppercase",
+              paddingLeft: 32,
+              paddingRight: 32,
+              paddingTop: 12,
+              paddingBottom: 12,
+              border: "1px solid #931818",
+              color: "#931818",
+              textDecoration: "none",
+              cursor: "pointer",
+            }}
           >
             Abrir un expediente
-          </Link>
+          </a>
         </div>
       </div>
 
-      {/* ── Hands ── */}
-      <div className="md:hidden absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: "28vh" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/adan.png"       alt="" className="hand-adan absolute bottom-0 left-0 h-[28vh] w-auto" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/dios_cromo.png" alt="" className="hand-dios absolute bottom-0 right-0 h-[28vh] w-auto"
-          onAnimationEnd={() => setHandsReady(true)} />
-      </div>
-
-      {/* Desktop */}
-      <div className="hidden md:flex absolute bottom-0 left-0 right-0 items-end justify-center pointer-events-none overflow-visible"
-           style={{ gap: "21px" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/adan.png"
-          alt=""
-          className="hand-adan block w-auto flex-shrink-0"
-          style={{ height: "34vh", marginBottom: "133px" }}
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/dios_cromo.png"
-          alt=""
-          className="hand-dios block w-auto flex-shrink-0"
-          style={{ height: "45vh", marginBottom: "calc(18vh - 36px)" }}
-          onAnimationEnd={() => setHandsReady(true)}
-        />
-      </div>
-
-      {/* ── Ticker — desktop only ── */}
-      <div className="hidden md:block absolute bottom-0 left-0 right-0 z-20 border-t border-ghost/10 bg-carbon/80 overflow-hidden">
-        <div className="py-2.5 overflow-hidden">
-          <span className="hero-ticker font-mono text-[10px] tracking-[0.25em] text-ghost/40 whitespace-nowrap uppercase">
-            {TICKER_TEXT.repeat(4)}
-          </span>
-        </div>
-      </div>
+      {/* Overlay negro — cubre todo al final del scroll */}
+      <div
+        ref={overlayRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "#090909",
+          opacity: 0,
+          visibility: "hidden",
+          zIndex: 30,
+          pointerEvents: "none",
+        }}
+      />
     </section>
   );
 }

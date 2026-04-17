@@ -31,7 +31,7 @@ export default function CTACierre() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.15 }}
         >
-          We building visions.
+          We build vision.
           <br />
           <span className="text-ghost/50">Not just brands.</span>
         </motion.h2>

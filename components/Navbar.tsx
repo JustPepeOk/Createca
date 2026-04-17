@@ -1,43 +1,33 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
 export default function Navbar() {
-  const pathname = usePathname();
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-ghost/10 bg-carbon/95 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <Link
-          href="/"
+        <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="cursor-pointer opacity-80 hover:opacity-100 transition-opacity duration-200"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/purologoblanco.svg" alt="CREATECA" style={{ height: "36px", width: "auto", display: "block" }} />
-        </Link>
+        </button>
         <div className="flex items-center gap-8">
-          <Link
-            href="/servicios"
-            className={`font-mono text-xs tracking-widest uppercase transition-colors duration-200 ${
-              pathname === "/servicios"
-                ? "text-orange"
-                : "text-ghost/60 hover:text-ghost"
-            }`}
+          <button
+            onClick={() => scrollTo("servicios")}
+            className="font-mono text-xs tracking-widest uppercase text-ghost/60 hover:text-ghost transition-colors duration-200"
           >
             Servicios
-          </Link>
-          <Link
-            href="/contacto"
-            className={`font-mono text-xs tracking-widest uppercase transition-colors duration-200 ${
-              pathname === "/contacto"
-                ? "text-orange"
-                : "text-ghost/60 hover:text-ghost"
-            }`}
+          </button>
+          <button
+            onClick={() => scrollTo("contacto")}
+            className="font-mono text-xs tracking-widest uppercase text-ghost/60 hover:text-ghost transition-colors duration-200"
           >
             Contacto
-          </Link>
+          </button>
         </div>
       </div>
     </nav>

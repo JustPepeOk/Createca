@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CREATECA — Catálogo de Servicios</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  background:#090909;
+  color:#F5F2EB;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.services{
+  padding:5rem 4rem;
+  max-width:1400px;
+  margin:0 auto;
+}
+
+.section-label{
+  font-size:11px;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  color:#931818;
+  margin-bottom:5rem;
+  display:flex;
+  align-items:center;
+  gap:1rem;
+}
+.section-label::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(to right,#931818,transparent);
+}
+
+/* === SERVICE CARD === */
+.service{
+  position:relative;
+  padding:3rem 0;
+  border-top:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;
+  overflow:hidden;
+  transition:all 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+
+.service:last-child{
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+
+/* background effect container */
+.service-bg{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  opacity:0;
+  transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1);
+  z-index:0;
+  pointer-events:none;
+}
+
+.service:hover .service-bg{
+  opacity:1;
+}
+
+.service:hover{
+  padding:3.5rem 2rem;
+  border-color:rgba(147,24,24,0.2);
+}
+
+/* giant background number */
+.service-ghost{
+  position:absolute;
+  right:2rem;
+  top:50%;
+  transform:translateY(-50%) translateX(10px);
+  font-size:clamp(10rem,18vw,16rem);
+  font-weight:800;
+  line-height:1;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,0.03);
+  z-index:0;
+  transition:all 0.8s cubic-bezier(0.16,1,0.3,1);
+  pointer-events:none;
+  user-select:none;
+}
+
+.service:hover .service-ghost{
+  transform:translateY(-50%) translateX(0);
+  -webkit-text-stroke:1px rgba(255,255,255,0.06);
+}
+
+/* content */
+.service-content{
+  position:relative;
+  z-index:1;
+}
+
+.service-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:0.5rem;
+}
+
+.service-meta{
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  font-size:11px;
+  letter-spacing:0.2em;
+  color:rgba(245,242,235,0.25);
+}
+
+.service-num{
+  color:#931818;
+  font-weight:700;
+  transition:all 0.5s;
+}
+
+.service:hover .service-num{
+  color:#cc3333;
+  text-shadow:0 0 20px rgba(147,24,24,0.4);
+}
+
+.service-meta-line{
+  width:2rem;height:1px;
+  background:rgba(245,242,235,0.15);
+  transition:width 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+
+.service:hover .service-meta-line{
+  width:3.5rem;
+  background:rgba(147,24,24,0.3);
+}
+
+.service-tags{
+  display:flex;gap:0.5rem;
+  font-size:10px;letter-spacing:0.15em;
+  color:rgba(245,242,235,0.3);
+  text-transform:uppercase;
+}
+
+.service-cta{
+  font-size:11px;
+  letter-spacing:0.2em;
+  color:rgba(245,242,235,0.15);
+  text-transform:uppercase;
+  transition:all 0.5s;
+  display:flex;align-items:center;gap:0.5rem;
+}
+
+.service:hover .service-cta{
+  color:#931818;
+}
+
+.cta-arrow{
+  display:inline-block;
+  transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+.service:hover .cta-arrow{
+  transform:translateX(6px);
+}
+
+/* title with accent bar */
+.service-title-wrap{
+  display:flex;
+  align-items:center;
+  gap:0;
+  margin:1rem 0;
+}
+
+.service-accent{
+  width:3px;
+  height:0;
+  background:#931818;
+  margin-right:1rem;
+  transition:height 0.6s cubic-bezier(0.16,1,0.3,1);
+  flex-shrink:0;
+}
+
+.service:hover .service-accent{
+  height:3.5rem;
+}
+
+.service-title{
+  font-size:clamp(1.8rem,4vw,3.2rem);
+  font-weight:800;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  line-height:1.1;
+  transition:all 0.5s;
+}
+
+.service:hover .service-title{
+  letter-spacing:0.06em;
+}
+
+.service-desc{
+  font-size:0.82rem;
+  line-height:1.8;
+  color:rgba(245,242,235,0.35);
+  max-width:600px;
+  margin-top:0.8rem;
+  transition:all 0.5s;
+}
+
+.service:hover .service-desc{
+  color:rgba(245,242,235,0.55);
+}
+
+/* === UNIQUE EFFECTS PER SERVICE === */
+
+/* 01: MARKETING — horizontal motion streaks */
+.service--marketing .service-bg{
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(147,24,24,0.03) 30%,
+    rgba(147,24,24,0.06) 70%,
+    transparent 100%
+  );
+}
+
+.service--marketing .service-bg::before,
+.service--marketing .service-bg::after{
+  content:'';
+  position:absolute;
+  left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(147,24,24,0.15),transparent);
+  animation:streakSlide 3s linear infinite;
+}
+
+.service--marketing .service-bg::before{top:30%}
+.service--marketing .service-bg::after{top:70%;animation-delay:-1.5s;animation-duration:2.5s}
+
+@keyframes streakSlide{
+  0%{transform:translateX(-100%);opacity:0}
+  20%{opacity:1}
+  80%{opacity:1}
+  100%{transform:translateX(100%);opacity:0}
+}
+
+.service--marketing:hover .service-title{
+  animation:motionBlurText 0.3s ease-out;
+}
+
+@keyframes motionBlurText{
+  0%{filter:blur(8px);transform:translateX(-10px);opacity:0.5}
+  100%{filter:blur(0);transform:translateX(0);opacity:1}
+}
+
+/* extra streaks for marketing */
+.service--marketing .streak{
+  position:absolute;
+  left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent 0%,rgba(147,24,24,0.1) 20%,rgba(200,80,50,0.08) 50%,transparent 100%);
+  animation:streakSlide 4s linear infinite;
+  opacity:0;
+  transition:opacity 0.8s;
+}
+
+.service--marketing:hover .streak{opacity:1}
+.service--marketing .streak:nth-child(2){top:20%;animation-delay:-0.5s;animation-duration:3.5s}
+.service--marketing .streak:nth-child(3){top:45%;animation-delay:-2s;animation-duration:2.8s}
+.service--marketing .streak:nth-child(4){top:60%;animation-delay:-1s;animation-duration:4.5s}
+.service--marketing .streak:nth-child(5){top:85%;animation-delay:-3s;animation-duration:3s}
+
+/* 02: IDENTIDAD VISUAL — prismatic/chrome shimmer */
+.service--identity .service-bg{
+  background:linear-gradient(135deg,
+    rgba(0,33,71,0.06) 0%,
+    rgba(147,24,24,0.03) 25%,
+    rgba(0,100,100,0.03) 50%,
+    rgba(147,24,24,0.04) 75%,
+    rgba(0,33,71,0.06) 100%
+  );
+  background-size:200% 200%;
+  animation:chromeShift 6s ease-in-out infinite;
+}
+
+@keyframes chromeShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.service--identity:hover .service-title{
+  background:linear-gradient(90deg,
+    #F5F2EB 0%,
+    #F5F2EB 30%,
+    #DFA11D 50%,
+    #F5F2EB 70%,
+    #F5F2EB 100%
+  );
+  background-size:200% 100%;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmerText 3s linear infinite;
+}
+
+@keyframes shimmerText{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+.service--identity .service-bg::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(255,255,255,0.008) 3px,
+    rgba(255,255,255,0.008) 4px
+  );
+}
+
+/* 03: PROYECTOS DISRUPTIVOS — glitch/distortion */
+.service--disruptive .service-bg{
+  background:rgba(147,24,24,0.02);
+}
+
+.service--disruptive:hover .service-title{
+  animation:glitchTitle 4s infinite;
+}
+
+@keyframes glitchTitle{
+  0%,88%,100%{transform:none;text-shadow:none}
+  89%{transform:translateX(3px) skewX(-1deg);text-shadow:2px 0 #931818,-2px 0 rgba(0,100,150,0.3)}
+  90%{transform:translateX(-2px) skewX(0.5deg);text-shadow:-2px 0 #931818,2px 0 rgba(0,100,150,0.3)}
+  91%{transform:translateX(1px);text-shadow:1px 0 rgba(147,24,24,0.5)}
+  92%{transform:none;text-shadow:none}
+}
+
+.service--disruptive .service-bg::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 2px,
+    rgba(147,24,24,0.02) 2px,
+    rgba(147,24,24,0.02) 4px
+  );
+}
+
+/* noise overlay for disruptive */
+.service--disruptive .noise{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  opacity:0;
+  transition:opacity 0.8s;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+
+.service--disruptive:hover .noise{opacity:1}
+
+/* scan line that crosses on hover */
+.service--disruptive .scanline{
+  position:absolute;
+  left:0;right:0;
+  height:2px;
+  background:rgba(147,24,24,0.15);
+  top:-2px;
+  transition:none;
+  opacity:0;
+}
+
+.service--disruptive:hover .scanline{
+  opacity:1;
+  animation:scanDown 2s linear infinite;
+}
+
+@keyframes scanDown{
+  0%{top:-2px}
+  100%{top:100%}
+}
+
+/* === STATUS CHIP === */
+.service-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  margin-top:1.2rem;
+  opacity:0;
+  transform:translateY(5px);
+  transition:all 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s;
+}
+
+.service:hover .service-status{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.status-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:#931818;
+  animation:statusPulse 2s infinite;
+}
+
+@keyframes statusPulse{
+  0%,100%{opacity:1}
+  50%{opacity:0.3}
+}
+
+.service-status span{color:rgba(147,24,24,0.6)}
+
+/* === RESPONSIVE === */
+@media(max-width:768px){
+  .services{padding:3rem 1.5rem}
+  .service{padding:2rem 0}
+  .service:hover{padding:2.5rem 1rem}
+  .service-header{flex-direction:column;align-items:flex-start;gap:0.8rem}
+  .service-ghost{font-size:8rem;right:0}
+  .service-cta{margin-top:1rem}
+}
+</style>
+</head>
+<body>
+
+<section class="services">
+  <div class="section-label">Catálogo de Servicios</div>
+
+  <!-- 01: Marketing Estratégico — motion streaks -->
+  <div class="service service--marketing">
+    <div class="service-bg">
+      <div class="streak"></div>
+      <div class="streak"></div>
+      <div class="streak"></div>
+      <div class="streak"></div>
+    </div>
+    <div class="service-ghost">01</div>
+    <div class="service-content">
+      <div class="service-header">
+        <div class="service-meta">
+          <span class="service-num">[01]</span>
+          <span class="service-meta-line"></span>
+          <div class="service-tags">
+            <span>Estrategia</span>
+            <span>·</span>
+            <span>Posicionamiento</span>
+          </div>
+        </div>
+        <div class="service-cta">Abrir Expediente <span class="cta-arrow">→</span></div>
+      </div>
+      <div class="service-title-wrap">
+        <div class="service-accent"></div>
+        <h3 class="service-title">Marketing Estratégico</h3>
+      </div>
+      <p class="service-desc">Desarrollo de estrategias de comunicación y posicionamiento alineadas a los objetivos de negocio. Sin tácticas genéricas — solo arquitectura de marca con propósito.</p>
+      <div class="service-status"><div class="status-dot"></div><span>Módulo operativo</span></div>
+    </div>
+  </div>
+
+  <!-- 02: Identidad Visual — chrome shimmer -->
+  <div class="service service--identity">
+    <div class="service-bg"></div>
+    <div class="service-ghost">02</div>
+    <div class="service-content">
+      <div class="service-header">
+        <div class="service-meta">
+          <span class="service-num">[02]</span>
+          <span class="service-meta-line"></span>
+          <div class="service-tags">
+            <span>Branding</span>
+            <span>·</span>
+            <span>Logo</span>
+            <span>·</span>
+            <span>Sistema</span>
+          </div>
+        </div>
+        <div class="service-cta">Abrir Expediente <span class="cta-arrow">→</span></div>
+      </div>
+      <div class="service-title-wrap">
+        <div class="service-accent"></div>
+        <h3 class="service-title">Identidad Visual</h3>
+      </div>
+      <p class="service-desc">Construcción de sistemas de identidad visual coherentes y escalables. Del concepto al manual. Del logo al ecosistema completo de marca.</p>
+      <div class="service-status"><div class="status-dot"></div><span>Módulo operativo</span></div>
+    </div>
+  </div>
+
+  <!-- 03: Proyectos Disruptivos — glitch -->
+  <div class="service service--disruptive">
+    <div class="service-bg">
+      <div class="noise"></div>
+      <div class="scanline"></div>
+    </div>
+    <div class="service-ghost">03</div>
+    <div class="service-content">
+      <div class="service-header">
+        <div class="service-meta">
+          <span class="service-num">[03]</span>
+          <span class="service-meta-line"></span>
+          <div class="service-tags">
+            <span>Campañas</span>
+            <span>·</span>
+            <span>Activaciones</span>
+          </div>
+        </div>
+        <div class="service-cta">Abrir Expediente <span class="cta-arrow">→</span></div>
+      </div>
+      <div class="service-title-wrap">
+        <div class="service-accent"></div>
+        <h3 class="service-title">Proyectos Disruptivos</h3>
+      </div>
+      <p class="service-desc">Campañas y activaciones que rompen el patrón de la categoría. Ejecuciones que generan conversación, no solo impresiones.</p>
+      <div class="service-status"><div class="status-dot"></div><span>Módulo operativo</span></div>
+    </div>
+  </div>
+
+</section>
+
+</body>
+</html>
