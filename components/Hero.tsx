@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import Link from "next/link";
 import DataVortex, { VortexParams } from "./DataVortex";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
