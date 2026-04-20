@@ -23,9 +23,9 @@ uniform float uMouse;
 #define PI 3.14159265
 #define TAU 6.28318530
 
-float hash2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-float hash3(vec2 p){return fract(sin(dot(p,vec2(269.5,183.3)))*43758.5453);}
-float hash4(vec2 p){return fract(sin(dot(p,vec2(419.2,371.9)))*43758.5453);}
+float hash2(vec2 p){p=mod(p,289.0);return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float hash3(vec2 p){p=mod(p,289.0);return fract(sin(dot(p,vec2(269.5,183.3)))*43758.5453);}
+float hash4(vec2 p){p=mod(p,289.0);return fract(sin(dot(p,vec2(419.2,371.9)))*43758.5453);}
 
 float noise2(vec2 p){
   vec2 i=floor(p);
