@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${jetbrainsMono.variable} ${bahnschrift.variable} ${pressStart.variable}`} style={{ visibility: 'hidden' }}>
+    <html lang="es" className={`${jetbrainsMono.variable} ${bahnschrift.variable} ${pressStart.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `history.scrollRestoration='manual';`}} />
       </head>

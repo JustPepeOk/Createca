@@ -79,7 +79,6 @@ export default function Historia() {
         window.scrollTo(0, 0);
         ScrollTrigger.refresh();
         initialized = true;
-        document.documentElement.style.visibility = '';
       });
     });
 
