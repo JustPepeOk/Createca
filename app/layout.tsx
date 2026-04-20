@@ -50,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${jetbrainsMono.variable} ${bahnschrift.variable} ${pressStart.variable}`}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `history.scrollRestoration='manual';`}} />
+        <script dangerouslySetInnerHTML={{ __html: `history.scrollRestoration='manual';window.addEventListener('pageshow',function(){window.scrollTo(0,0);});window.addEventListener('beforeunload',function(){window.scrollTo(0,0);});`}} />
       </head>
       <body>
         <ScrollToTop />

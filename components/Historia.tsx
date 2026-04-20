@@ -97,7 +97,7 @@ export default function Historia() {
 
       <div
         ref={wrapperRef}
-        style={{ position: "fixed", inset: 0, zIndex: 35, overflow: "hidden", background: "#090909" }}
+        style={{ position: "fixed", inset: 0, zIndex: 35, overflow: "hidden", background: "#090909", visibility: "hidden", opacity: 0 }}
       >
         <div
           ref={trackRef}
