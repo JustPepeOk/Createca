@@ -92,7 +92,7 @@ export default function Hero() {
         className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center"
         style={{ transform: "translateY(74px)", paddingBottom: "9vh", gap: 0 }}
       >
-        <div style={{ width: 561, marginBottom: 24 }}>
+        <div style={{ width: '100%', maxWidth: 561, marginBottom: 24 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo_blanco.svg" alt="CREATECA" className="w-full" />
         </div>

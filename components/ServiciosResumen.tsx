@@ -103,7 +103,13 @@ const CSS = `
 .srv-card:hover .srv-ghost text {
   stroke: rgba(245,242,235,0.38);
 }
-@media(max-width:768px){ .srv-ghost { font-size: 6rem; right: 0; } }
+@media(max-width:768px){
+  .srv-ghost { font-size: 5rem; right: 0; }
+  .srv-label { margin-bottom: 2.5rem; font-size: 0.75rem; }
+  .srv-title { font-size: clamp(1.5rem, 7vw, 2.5rem); }
+  .srv-panel-inner { padding-bottom: 2rem; }
+  .srv-desc { font-size: 0.95rem; }
+}
 
 /* content */
 .srv-content { position: relative; }

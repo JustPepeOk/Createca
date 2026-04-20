@@ -109,7 +109,7 @@ export default function Footer() {
         }} />
 
         {/* Contenido — aparece después de que se forma la franja */}
-        <div ref={contentRef} style={{ position: "relative", zIndex: 10, display: "flex", minHeight: "760px" }}>
+        <div ref={contentRef} className="footer-content" style={{ position: "relative", zIndex: 10, display: "flex", minHeight: "760px" }}>
 
           {/* Lanyard — mitad derecha, monta al entrar y fade out al salir */}
           <div ref={lanyardWrapRef} className="hidden md:block absolute top-0 right-0 bottom-0" style={{ width: "50%", zIndex: 50, visibility: "hidden", opacity: 0 }}>
@@ -120,8 +120,13 @@ export default function Footer() {
           <style dangerouslySetInnerHTML={{ __html: `
             .footer-input::placeholder { color: rgba(245,242,235,0.5); }
             .footer-input:focus { border-color: rgba(245,242,235,0.9) !important; outline: none; }
+            @media (max-width: 768px) {
+              .footer-content { flex-direction: column !important; min-height: unset !important; }
+              .footer-form-col { max-width: 100% !important; padding: 3rem 1.5rem 2.5rem !important; width: 100% !important; }
+              .footer-input-grid { grid-template-columns: 1fr !important; }
+            }
           `}} />
-          <div style={{ maxWidth: "50%", position: "relative", zIndex: 60, padding: "6rem 4rem 5rem" }}>
+          <div className="footer-form-col" style={{ maxWidth: "50%", position: "relative", zIndex: 60, padding: "6rem 4rem 5rem" }}>
             <span style={{
               fontFamily: "var(--font-jetbrains-mono), monospace",
               fontSize: "10px",
@@ -173,7 +178,7 @@ export default function Footer() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                <div className="footer-input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
                   <Field label="Nombre">
                     <input type="text" required value={form.nombre}
                       onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}

@@ -57,6 +57,14 @@ const CSS = `
   justify-content: center;
   flex-shrink: 0;
 }
+.cli-logo-wrap--leon { width: 160px; height: 160px; }
+@media(max-width:768px){
+  .cli-section { gap: 3rem; }
+  .cli-logo-wrap { width: 140px; height: 65px; }
+  .cli-logo-wrap--leon { width: 90px; height: 90px; }
+  .cli-track { gap: 4rem; padding: 0 2rem; }
+  .cli-sep { font-size: 1.5rem; }
+}
 .cli-logo {
   width: 100%;
   height: 100%;
@@ -87,7 +95,7 @@ export default function Clientes() {
           <div className="cli-track">
             {items.map((logo, i) => (
               <span key={i} style={{ display: "flex", alignItems: "center", gap: "5rem" }}>
-                <span className="cli-logo-wrap" style={logo.alt === "Club León" ? { width: 160, height: 160 } : undefined}>
+                <span className={`cli-logo-wrap${logo.alt === "Club León" ? " cli-logo-wrap--leon" : ""}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={logo.src} alt={logo.alt} className="cli-logo" />
                 </span>
