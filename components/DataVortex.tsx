@@ -5,7 +5,11 @@ import { useRef, useEffect } from "react";
 const VS = `attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}`;
 
 const FS = `
-precision highp float;
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
 uniform float t;
 uniform vec2 r;
 uniform vec2 m;
@@ -205,7 +209,8 @@ export default function DataVortex({ paramsRef }: { paramsRef: React.RefObject<V
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext("webgl", { antialias: false, alpha: false });
+    const gl = (canvas.getContext("webgl2", { antialias: false, alpha: false }) ||
+                canvas.getContext("webgl",  { antialias: false, alpha: false })) as WebGLRenderingContext | null;
     if (!gl) return;
 
     let mx = 0.5, my = 0.5, smx = 0.5, smy = 0.5;
@@ -218,7 +223,8 @@ export default function DataVortex({ paramsRef }: { paramsRef: React.RefObject<V
     window.addEventListener("mousemove", onMouseMove);
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio, 2);
+      const isMobile = window.innerWidth < 768;
+      const dpr = Math.min(window.devicePixelRatio, isMobile ? 1 : 2);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       gl.viewport(0, 0, canvas.width, canvas.height);
