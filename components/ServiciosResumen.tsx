@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import LiquidGradient from "./LiquidGradient";
 
 const CSS = `
@@ -311,28 +308,19 @@ const services = [
 ];
 
 export default function ServiciosResumen() {
-  const [open, setOpen] = useState<number | null>(null);
-
-  const toggle = (i: number) => setOpen(open === i ? null : i);
-
-  const scrollToContact = () => {
-    document.getElementById("contacto")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <section className="srv-section" id="servicios">
         <LiquidGradient />
-        {/* Orbe rojo fuera del overflow:hidden — se cuela en 2026 */}
         <div style={{
           position: "absolute",
-          width: "120%",
-          height: "100%",
-          top: "-30%",
-          left: "-20%",
-          background: "radial-gradient(ellipse at 40% 40%, #FF3C00 0%, rgba(255,60,0,0.6) 35%, transparent 65%)",
-          filter: "blur(70px)",
+          width: "100%",
+          height: "70%",
+          top: "0%",
+          left: "0",
+          background: "radial-gradient(ellipse at 35% 30%, rgba(255,60,0,0.75) 0%, rgba(255,60,0,0.35) 40%, transparent 65%)",
+          filter: "blur(80px)",
           animation: "orb-red 10s ease-in-out infinite",
           pointerEvents: "none",
           zIndex: 0,
@@ -341,11 +329,8 @@ export default function ServiciosResumen() {
 
           <div className="srv-label">Catálogo de Servicios</div>
 
-          {services.map((s, i) => (
-            <div
-              key={s.num}
-              className={`srv-card ${s.cls}${open === i ? " is-open" : ""}`}
-            >
+          {services.map((s) => (
+            <div key={s.num} className={`srv-card ${s.cls}`}>
               <svg className="srv-ghost" overflow="visible" width="1.6em" height="1em" aria-hidden="true">
                 <text
                   x="1.5em" y="0.85em"
@@ -361,8 +346,7 @@ export default function ServiciosResumen() {
                 </text>
               </svg>
               <div className="srv-content">
-
-                <button className="srv-trigger" onClick={() => toggle(i)}>
+                <button className="srv-trigger">
                   <span className="srv-num">[{s.num}]</span>
                   <span className="srv-meta-line" />
                   <span className="srv-title">{s.title}</span>
@@ -378,18 +362,42 @@ export default function ServiciosResumen() {
                     <ul className="srv-deliverables">
                       {s.deliverables.map((d) => <li key={d}>{d}</li>)}
                     </ul>
-                    <button className="srv-contact-btn" onClick={scrollToContact}>
+                    <button className="srv-contact-btn srv-contact-js">
                       Iniciar proyecto <span className="srv-contact-btn-arrow">→</span>
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
           ))}
 
         </div>
       </section>
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function(){
+          function init(){
+            var section = document.getElementById('servicios');
+            if (!section) return;
+            section.addEventListener('click', function(e){
+              var trigger = e.target.closest('.srv-trigger');
+              var contactBtn = e.target.closest('.srv-contact-js');
+              if (contactBtn) {
+                var el = document.getElementById('contacto');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                return;
+              }
+              if (!trigger) return;
+              var card = trigger.closest('.srv-card');
+              if (!card) return;
+              var wasOpen = card.classList.contains('is-open');
+              section.querySelectorAll('.srv-card.is-open').forEach(function(c){ c.classList.remove('is-open'); });
+              if (!wasOpen) card.classList.add('is-open');
+            });
+          }
+          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+          else init();
+        })();
+      `}} />
     </>
   );
 }

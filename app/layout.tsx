@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Press_Start_2P } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -24,6 +24,13 @@ const pressStart = Press_Start_2P({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "20 [CREATECA] 26 — Developing Brand Through A New World Vision",
   description:
@@ -42,6 +49,8 @@ export const metadata: Metadata = {
   },
 };
 
+import Script from "next/script";
+
 export default function RootLayout({
   children,
 }: {
@@ -50,10 +59,141 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${jetbrainsMono.variable} ${bahnschrift.variable} ${pressStart.variable}`}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `history.scrollRestoration='manual';window.addEventListener('pageshow',function(){window.scrollTo(0,0);});window.addEventListener('beforeunload',function(){window.scrollTo(0,0);});`}} />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
       </head>
       <body>
-        <ScrollToTop />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                if (window.innerWidth >= 768) return;
+
+                var LOOP_END   = 10;
+                var ZOOM_START = 10;
+                var ZOOM_END   = 15;
+                var LERP       = 0.14; /* smoothing — higher = snappier, lower = floatier */
+
+                function setup() {
+                  var video   = document.querySelector('.hero-video-mobile');
+                  var content = document.getElementById('hero-content');
+                  var overlay = document.getElementById('hero-overlay');
+                  if (!video || !content || !overlay) { setTimeout(setup, 100); return; }
+
+                  var VH             = window.innerHeight;
+                  var heroDone       = false;
+                  var targetProgress = 0;
+                  var lerpProgress   = 0;
+
+                  /* set spacer height = VH (hero zoom zone) + historia content */
+                  var spacer = document.getElementById('mobile-scroll-spacer');
+                  var histEl = document.getElementById('historia-mobile');
+                  var spacerEnd = 0;
+                  if (spacer && histEl) {
+                    spacerEnd = VH + histEl.scrollHeight;
+                    spacer.style.height = spacerEnd + 'px';
+                  }
+
+                  function tryPlay() { try { video.play(); } catch(e){} }
+                  tryPlay();
+
+                  /* ── RAF loop — all visual updates here, smooth lerp ── */
+                  requestAnimationFrame(function tick() {
+                    /* lerp toward target */
+                    lerpProgress += (targetProgress - lerpProgress) * LERP;
+                    if (Math.abs(targetProgress - lerpProgress) < 0.0008) lerpProgress = targetProgress;
+
+                    var p = lerpProgress;
+
+                    /* hero content fade */
+                    var alpha = Math.max(0, 1 - p / 0.3);
+                    content.style.opacity    = String(alpha);
+                    content.style.visibility = alpha > 0 ? 'visible' : 'hidden';
+
+                    /* overlay fade */
+                    var oa = Math.max(0, Math.min(1, (p - 0.75) / 0.25));
+                    overlay.style.opacity    = String(oa);
+                    overlay.style.visibility = oa > 0 ? 'visible' : 'hidden';
+
+                    /* video: idle loop or scrub */
+                    if (p > 0.002) {
+                      var t = ZOOM_START + p * (ZOOM_END - ZOOM_START);
+                      if (Math.abs(video.currentTime - t) > 0.016) video.currentTime = t;
+                      if (!video.paused) video.pause();
+                    } else {
+                      if (video.currentTime >= LOOP_END) video.currentTime = 0;
+                      if (video.paused) tryPlay();
+                    }
+
+                    /* historia fade-out when scrolling back into hero zone */
+                    if (p < 1 && window.scrollY < VH) {
+                      var hist = document.getElementById('historia-mobile');
+                      if (hist && hist.style.visibility !== 'hidden') {
+                        var ha = Math.min(1, Math.max(0, (p - 0.7) / 0.3));
+                        hist.style.transition = 'none';
+                        hist.style.opacity    = String(ha);
+                        if (ha <= 0) {
+                          hist.style.visibility = 'hidden';
+                          heroDone = false;
+                        }
+                      }
+                    }
+
+                    requestAnimationFrame(tick);
+                  });
+
+                  /* ── Scroll handler — only updates target, no visual work ── */
+                  var snapTimer;
+                  window.addEventListener('scroll', function() {
+                    targetProgress = Math.min(1, Math.max(0, window.scrollY / VH));
+
+                    /* historia-inner translateY tracks real scroll (not lerped — no lag on content) */
+                    if (window.scrollY >= VH) {
+                      var inner = document.getElementById('historia-inner');
+                      if (inner) inner.style.transform = 'translateY(' + (VH - window.scrollY) + 'px)';
+                    }
+
+                    /* snap to 0 or VH when scroll rests mid-zone */
+                    clearTimeout(snapTimer);
+                    if (window.scrollY <= VH) {
+                      snapTimer = setTimeout(function() {
+                        var pp = window.scrollY / VH;
+                        if (pp > 0 && pp < 1) {
+                          window.scrollTo({ top: pp >= 0.5 ? VH : 0, behavior: 'smooth' });
+                        }
+                      }, 200);
+                    }
+
+                    /* show historia once */
+                    if (targetProgress >= 1 && !heroDone) {
+                      heroDone = true;
+                      clearTimeout(snapTimer);
+                      var hist = document.getElementById('historia-mobile');
+                      if (!hist) return;
+                      hist.style.transition = 'none';
+                      hist.style.visibility = 'visible';
+                      hist.style.opacity    = '0';
+                      requestAnimationFrame(function(){ requestAnimationFrame(function(){
+                        hist.style.transition = 'opacity 0.8s ease';
+                        hist.style.opacity    = '1';
+                      }); });
+                    }
+
+                  }, { passive: true });
+                }
+
+                if (document.readyState === 'loading') {
+                  document.addEventListener('DOMContentLoaded', setup);
+                } else {
+                  setup();
+                }
+              })();
+            `,
+          }}
+        />
+        <Script id="scroll-restoration" strategy="beforeInteractive">
+          {`history.scrollRestoration='manual';window.addEventListener('pageshow',function(){window.scrollTo(0,0);});window.addEventListener('beforeunload',function(){window.scrollTo(0,0);});`}
+        </Script>
+<ScrollToTop />
         <Navbar />
         <main>{children}</main>
         {/* <Footer /> */}
