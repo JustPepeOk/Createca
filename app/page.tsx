@@ -10,13 +10,12 @@ export default function Home() {
     <>
       <Hero />
       {/* Mobile: VH for hero zoom + historia content height (set dynamically by JS) */}
-      <div id="mobile-scroll-spacer" className="md:hidden" style={{ height: "500vh", pointerEvents: "none" }} aria-hidden="true" />
+      {/* height is corrected synchronously by the end-of-body script; 320vh is a reasonable fallback */}
+      <div id="mobile-scroll-spacer" className="md:hidden" style={{ height: "320vh", pointerEvents: "none" }} aria-hidden="true" />
       <div className="hidden md:block">
         <Historia />
       </div>
-      <div className="md:hidden">
-        <HistoriaMobile />
-      </div>
+      <HistoriaMobile />
       <div style={{ position: "relative", zIndex: 50 }}>
         <ServiciosResumen />
         <Clientes />

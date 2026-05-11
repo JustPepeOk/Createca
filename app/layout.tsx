@@ -84,16 +84,6 @@ export default function RootLayout({
                   var targetProgress = 0;
                   var lerpProgress   = 0;
 
-                  /* spacer = VH (hero zoom zone) + historia-inner full height
-                     Remeasured on load in case fonts/images shift layout */
-                  var spacer = document.getElementById('mobile-scroll-spacer');
-                  function measureSpacer() {
-                    var inner = document.getElementById('historia-inner');
-                    if (spacer && inner) spacer.style.height = (VH + inner.scrollHeight) + 'px';
-                  }
-                  requestAnimationFrame(measureSpacer);
-                  window.addEventListener('load', function(){ requestAnimationFrame(measureSpacer); });
-
                   function tryPlay() { try { video.play(); } catch(e){} }
                   tryPlay();
 
@@ -104,17 +94,14 @@ export default function RootLayout({
 
                     var p = lerpProgress;
 
-                    /* hero content fade */
                     var alpha = Math.max(0, 1 - p / 0.3);
                     content.style.opacity    = String(alpha);
                     content.style.visibility = alpha > 0 ? 'visible' : 'hidden';
 
-                    /* overlay fade */
                     var oa = Math.max(0, Math.min(1, (p - 0.75) / 0.25));
                     overlay.style.opacity    = String(oa);
                     overlay.style.visibility = oa > 0 ? 'visible' : 'hidden';
 
-                    /* video: idle loop or scrub */
                     if (p > 0.002) {
                       var t = ZOOM_START + p * (ZOOM_END - ZOOM_START);
                       if (Math.abs(video.currentTime - t) > 0.016) video.currentTime = t;
@@ -146,7 +133,7 @@ export default function RootLayout({
                   window.addEventListener('scroll', function() {
                     targetProgress = Math.min(1, Math.max(0, window.scrollY / VH));
 
-                    /* historia-inner translateY — always tracks scroll position */
+                    /* historia-inner translateY — always tracks scroll */
                     var inner = document.getElementById('historia-inner');
                     if (inner) {
                       inner.style.transform = 'translateY(' + (window.scrollY >= VH ? VH - window.scrollY : 0) + 'px)';
@@ -178,26 +165,18 @@ export default function RootLayout({
                       }); });
                     }
 
-                    /* fade/hide historia using servicios actual DOM position
-                       (getBoundingClientRect avoids any spacerEnd calculation errors)
-                       Fade starts 300px before servicios reaches viewport bottom */
+                    /* hide historia only once servicios fully covers the viewport (srvTop <= 0)
+                       — no fades, servicios z-index:50 scrolls over historia z-index:40 naturally */
                     if (heroDone) {
                       var srv = document.getElementById('servicios');
                       var h   = document.getElementById('historia-mobile');
                       if (srv && h) {
                         var srvTop = srv.getBoundingClientRect().top;
-                        if (srvTop <= VH) {
-                          /* servicios visible — historia fully hidden */
+                        if (srvTop <= 0) {
                           h.style.transition = 'none';
                           h.style.opacity    = '0';
                           h.style.visibility = 'hidden';
-                        } else if (srvTop <= VH + 300) {
-                          /* servicios approaching — smooth fade out */
-                          h.style.transition = 'none';
-                          h.style.opacity    = String((srvTop - VH) / 300);
-                          h.style.visibility = 'visible';
                         } else if (window.scrollY >= VH) {
-                          /* fully in historia reading zone */
                           h.style.transition = 'none';
                           h.style.opacity    = '1';
                           h.style.visibility = 'visible';
@@ -223,6 +202,20 @@ export default function RootLayout({
 <ScrollToTop />
         <Navbar />
         <main>{children}</main>
+        {/* Spacer measurement runs here — after <main> is parsed so historia-inner is in DOM */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          if (window.innerWidth < 768) {
+            (function() {
+              function setH() {
+                var s = document.getElementById('mobile-scroll-spacer');
+                var h = document.getElementById('historia-inner');
+                if (s && h && h.scrollHeight > 0) s.style.height = (window.innerHeight + h.scrollHeight) + 'px';
+              }
+              setH();
+              window.addEventListener('load', setH);
+            })();
+          }
+        `}} />
         {/* <Footer /> */}
       </body>
     </html>
