@@ -32,6 +32,7 @@ export default function HistoriaMobile() {
   return (
     <section id="historia-mobile" className="md:hidden" style={{
       background: "#090909", color: "#F5F2EB",
+      position: "relative", zIndex: 20,
     }}>
       <div id="historia-inner">
 

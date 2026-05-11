@@ -79,6 +79,8 @@ export default function RootLayout({
                   var overlay = document.getElementById('hero-overlay');
                   if (!video || !content || !overlay) { setTimeout(setup, 100); return; }
 
+                  var historia = document.getElementById('historia-mobile');
+
                   var VH             = window.innerHeight;
                   var targetProgress = 0;
                   var lerpProgress   = 0;
@@ -99,6 +101,8 @@ export default function RootLayout({
                     var oa = Math.max(0, Math.min(1, (p - 0.75) / 0.25));
                     overlay.style.opacity    = String(oa);
                     overlay.style.visibility = oa > 0 ? 'visible' : 'hidden';
+
+                    if (historia) historia.style.opacity = String(Math.max(0, Math.min(1, (p - 0.75) / 0.25)));
 
                     if (p > 0.002) {
                       var t = ZOOM_START + p * (ZOOM_END - ZOOM_START);
@@ -125,6 +129,7 @@ export default function RootLayout({
                         }
                       }, 200);
                     }
+
                   }, { passive: true });
                 }
 

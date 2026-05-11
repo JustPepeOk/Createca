@@ -1,5 +1,3 @@
-"use client";
-
 const logos = [
   { src: "/logos/sapal.svg",                        alt: "Sapal" },
   { src: "/logos/Logo-EGPV1.png",                   alt: "EGP" },
@@ -10,85 +8,11 @@ const logos = [
   { src: "/logos/logoGaceta.png",                   alt: "Gaceta" },
 ];
 
-const CSS = `
-.cli-section {
-  background: #090909;
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
-  z-index: 35;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5rem;
-}
-.cli-label {
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 1.1rem;
-  letter-spacing: 0.4em;
-  text-transform: uppercase;
-  color: rgba(245,242,235,0.3);
-  text-align: center;
-}
-.cli-track-wrap {
-  overflow: hidden;
-  width: 100%;
-  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-}
-@keyframes cli-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.cli-track {
-  display: flex;
-  align-items: center;
-  width: max-content;
-  animation: cli-scroll 40s linear infinite;
-  gap: 8rem;
-  padding: 0 4rem;
-}
-.cli-logo-wrap {
-  width: 280px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.cli-logo-wrap--leon { width: 160px; height: 160px; }
-@media(max-width:768px){
-  .cli-section { gap: 3rem; }
-  .cli-logo-wrap { width: 140px; height: 65px; }
-  .cli-logo-wrap--leon { width: 90px; height: 90px; }
-  .cli-track { gap: 4rem; padding: 0 2rem; }
-  .cli-sep { font-size: 1.5rem; }
-}
-.cli-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  opacity: 0.65;
-  transition: opacity 0.3s;
-  user-select: none;
-  pointer-events: none;
-}
-.cli-sep {
-  color: rgba(255,60,0,0.35);
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 2rem;
-  flex-shrink: 0;
-  user-select: none;
-}
-`;
-
 export default function Clientes() {
   const items = [...logos, ...logos];
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <section className="cli-section" id="clientes">
         <p className="cli-label">Nuestros Clientes</p>
         <div className="cli-track-wrap">
