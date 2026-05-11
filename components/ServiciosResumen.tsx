@@ -26,7 +26,19 @@ const CSS = `
   position: relative;
 }
 @media(max-width:768px){
-  .srv-inner { padding: 3rem 1.5rem; }
+  /* z-index:3 keeps service content above the ::before orb mask */
+  .srv-inner { padding: 3rem 1.5rem; position: relative; z-index: 3; }
+  /* Solid opaque mask — covers the orb completely for the first 320px so the
+     section enters as pure #090909, matching historia's dark background */
+  .srv-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 320px;
+    background: #090909;
+    z-index: 2;
+    pointer-events: none;
+  }
 }
 
 .srv-label {
