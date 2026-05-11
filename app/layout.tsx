@@ -71,7 +71,7 @@ export default function RootLayout({
                 var LOOP_END   = 10;
                 var ZOOM_START = 10;
                 var ZOOM_END   = 15;
-                var LERP       = 0.14; /* smoothing — higher = snappier, lower = floatier */
+                var LERP       = 0.14;
 
                 function setup() {
                   var video   = document.querySelector('.hero-video-mobile');
@@ -84,21 +84,21 @@ export default function RootLayout({
                   var targetProgress = 0;
                   var lerpProgress   = 0;
 
-                  /* set spacer height = VH (hero zoom zone) + historia content */
+                  /* spacer = VH (hero zoom zone) + historia-inner full height
+                     Remeasured on load in case fonts/images shift layout */
                   var spacer = document.getElementById('mobile-scroll-spacer');
-                  var histEl = document.getElementById('historia-mobile');
-                  var spacerEnd = 0;
-                  if (spacer && histEl) {
-                    spacerEnd = VH + histEl.scrollHeight;
-                    spacer.style.height = spacerEnd + 'px';
+                  function measureSpacer() {
+                    var inner = document.getElementById('historia-inner');
+                    if (spacer && inner) spacer.style.height = (VH + inner.scrollHeight) + 'px';
                   }
+                  requestAnimationFrame(measureSpacer);
+                  window.addEventListener('load', function(){ requestAnimationFrame(measureSpacer); });
 
                   function tryPlay() { try { video.play(); } catch(e){} }
                   tryPlay();
 
-                  /* ── RAF loop — all visual updates here, smooth lerp ── */
+                  /* ── RAF loop ── */
                   requestAnimationFrame(function tick() {
-                    /* lerp toward target */
                     lerpProgress += (targetProgress - lerpProgress) * LERP;
                     if (Math.abs(targetProgress - lerpProgress) < 0.0008) lerpProgress = targetProgress;
 
@@ -141,18 +141,18 @@ export default function RootLayout({
                     requestAnimationFrame(tick);
                   });
 
-                  /* ── Scroll handler — only updates target, no visual work ── */
+                  /* ── Scroll handler ── */
                   var snapTimer;
                   window.addEventListener('scroll', function() {
                     targetProgress = Math.min(1, Math.max(0, window.scrollY / VH));
 
-                    /* historia-inner translateY tracks real scroll (not lerped — no lag on content) */
-                    if (window.scrollY >= VH) {
-                      var inner = document.getElementById('historia-inner');
-                      if (inner) inner.style.transform = 'translateY(' + (VH - window.scrollY) + 'px)';
+                    /* historia-inner translateY — always tracks scroll position */
+                    var inner = document.getElementById('historia-inner');
+                    if (inner) {
+                      inner.style.transform = 'translateY(' + (window.scrollY >= VH ? VH - window.scrollY : 0) + 'px)';
                     }
 
-                    /* snap to 0 or VH when scroll rests mid-zone */
+                    /* snap to 0 or VH when scroll rests in hero zoom zone */
                     clearTimeout(snapTimer);
                     if (window.scrollY <= VH) {
                       snapTimer = setTimeout(function() {
@@ -163,7 +163,7 @@ export default function RootLayout({
                       }, 200);
                     }
 
-                    /* show historia once */
+                    /* show historia once hero zoom completes */
                     if (targetProgress >= 1 && !heroDone) {
                       heroDone = true;
                       clearTimeout(snapTimer);
@@ -176,6 +176,33 @@ export default function RootLayout({
                         hist.style.transition = 'opacity 0.8s ease';
                         hist.style.opacity    = '1';
                       }); });
+                    }
+
+                    /* fade/hide historia using servicios actual DOM position
+                       (getBoundingClientRect avoids any spacerEnd calculation errors)
+                       Fade starts 300px before servicios reaches viewport bottom */
+                    if (heroDone) {
+                      var srv = document.getElementById('servicios');
+                      var h   = document.getElementById('historia-mobile');
+                      if (srv && h) {
+                        var srvTop = srv.getBoundingClientRect().top;
+                        if (srvTop <= VH) {
+                          /* servicios visible — historia fully hidden */
+                          h.style.transition = 'none';
+                          h.style.opacity    = '0';
+                          h.style.visibility = 'hidden';
+                        } else if (srvTop <= VH + 300) {
+                          /* servicios approaching — smooth fade out */
+                          h.style.transition = 'none';
+                          h.style.opacity    = String((srvTop - VH) / 300);
+                          h.style.visibility = 'visible';
+                        } else if (window.scrollY >= VH) {
+                          /* fully in historia reading zone */
+                          h.style.transition = 'none';
+                          h.style.opacity    = '1';
+                          h.style.visibility = 'visible';
+                        }
+                      }
                     }
 
                   }, { passive: true });
