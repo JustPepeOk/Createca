@@ -30,14 +30,9 @@ const epochs = [
 
 export default function HistoriaMobile() {
   return (
-    <section id="historia-mobile" style={{
-      position: "fixed", inset: 0, zIndex: 40,
+    <section id="historia-mobile" className="md:hidden" style={{
       background: "#090909", color: "#F5F2EB",
-      overflow: "hidden",
-      opacity: 0, visibility: "hidden" as const,
-      pointerEvents: "none" as const,
     }}>
-      {/* inner div is translated by window.scroll to simulate scrolling without a second scrollbar */}
       <div id="historia-inner">
 
       {/* ── Manifesto ── */}

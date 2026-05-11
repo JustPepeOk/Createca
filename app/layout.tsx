@@ -80,14 +80,12 @@ export default function RootLayout({
                   if (!video || !content || !overlay) { setTimeout(setup, 100); return; }
 
                   var VH             = window.innerHeight;
-                  var heroDone       = false;
                   var targetProgress = 0;
                   var lerpProgress   = 0;
 
                   function tryPlay() { try { video.play(); } catch(e){} }
                   tryPlay();
 
-                  /* ── RAF loop ── */
                   requestAnimationFrame(function tick() {
                     lerpProgress += (targetProgress - lerpProgress) * LERP;
                     if (Math.abs(targetProgress - lerpProgress) < 0.0008) lerpProgress = targetProgress;
@@ -111,37 +109,15 @@ export default function RootLayout({
                       if (video.paused) tryPlay();
                     }
 
-                    /* historia fade-out when scrolling back into hero zone */
-                    if (p < 1 && window.scrollY < VH) {
-                      var hist = document.getElementById('historia-mobile');
-                      if (hist && hist.style.visibility !== 'hidden') {
-                        var ha = Math.min(1, Math.max(0, (p - 0.7) / 0.3));
-                        hist.style.transition = 'none';
-                        hist.style.opacity    = String(ha);
-                        if (ha <= 0) {
-                          hist.style.visibility = 'hidden';
-                          heroDone = false;
-                        }
-                      }
-                    }
-
                     requestAnimationFrame(tick);
                   });
 
-                  /* ── Scroll handler ── */
                   var snapTimer;
                   window.addEventListener('scroll', function() {
                     targetProgress = Math.min(1, Math.max(0, window.scrollY / VH));
 
-                    /* historia-inner translateY — always tracks scroll */
-                    var inner = document.getElementById('historia-inner');
-                    if (inner) {
-                      inner.style.transform = 'translateY(' + (window.scrollY >= VH ? VH - window.scrollY : 0) + 'px)';
-                    }
-
-                    /* snap to 0 or VH when scroll rests in hero zoom zone */
                     clearTimeout(snapTimer);
-                    if (window.scrollY <= VH) {
+                    if (window.scrollY > 0 && window.scrollY < VH) {
                       snapTimer = setTimeout(function() {
                         var pp = window.scrollY / VH;
                         if (pp > 0 && pp < 1) {
@@ -149,41 +125,6 @@ export default function RootLayout({
                         }
                       }, 200);
                     }
-
-                    /* show historia once hero zoom completes */
-                    if (targetProgress >= 1 && !heroDone) {
-                      heroDone = true;
-                      clearTimeout(snapTimer);
-                      var hist = document.getElementById('historia-mobile');
-                      if (!hist) return;
-                      hist.style.transition = 'none';
-                      hist.style.visibility = 'visible';
-                      hist.style.opacity    = '0';
-                      requestAnimationFrame(function(){ requestAnimationFrame(function(){
-                        hist.style.transition = 'opacity 0.8s ease';
-                        hist.style.opacity    = '1';
-                      }); });
-                    }
-
-                    /* hide historia only once servicios fully covers the viewport (srvTop <= 0)
-                       — no fades, servicios z-index:50 scrolls over historia z-index:40 naturally */
-                    if (heroDone) {
-                      var srv = document.getElementById('servicios');
-                      var h   = document.getElementById('historia-mobile');
-                      if (srv && h) {
-                        var srvTop = srv.getBoundingClientRect().top;
-                        if (srvTop <= 0) {
-                          h.style.transition = 'none';
-                          h.style.opacity    = '0';
-                          h.style.visibility = 'hidden';
-                        } else if (window.scrollY >= VH) {
-                          h.style.transition = 'none';
-                          h.style.opacity    = '1';
-                          h.style.visibility = 'visible';
-                        }
-                      }
-                    }
-
                   }, { passive: true });
                 }
 
@@ -202,20 +143,6 @@ export default function RootLayout({
 <ScrollToTop />
         <Navbar />
         <main>{children}</main>
-        {/* Spacer measurement runs here — after <main> is parsed so historia-inner is in DOM */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          if (window.innerWidth < 768) {
-            (function() {
-              function setH() {
-                var s = document.getElementById('mobile-scroll-spacer');
-                var h = document.getElementById('historia-inner');
-                if (s && h && h.scrollHeight > 0) s.style.height = (window.innerHeight + h.scrollHeight) + 'px';
-              }
-              setH();
-              window.addEventListener('load', setH);
-            })();
-          }
-        `}} />
         {/* <Footer /> */}
       </body>
     </html>
